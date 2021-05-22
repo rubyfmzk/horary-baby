@@ -1,0 +1,134 @@
+.home header{
+  background: transparent;
+  border-bottom: none;
+}
+
+.home header h1{
+  letter-spacing: 0.1em;
+}
+
+#home_background{
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding-top: 0;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: cover;
+  position: fixed;
+  z-index: 1;
+}
+
+#home_before_top{
+  background: #5c889a;
+  padding-top: 0;
+  mix-blend-mode: color-burn;
+  opacity: 1;
+  height: 200vh;
+  margin: -100vh 0 0 0;
+  z-index: 2;
+  position: fixed;
+}
+
+#home_top{
+  height: 100vh;
+  z-index: 3;
+  position: relative;
+  background: transparent;
+  text-shadow: 1px -1px 2px #23305F, -1px 1px 2px #23305f, 1px 1px 2px #23305f, -1px -1px 2px #23305f;
+}
+
+@media (min-width: 768px) {
+  #home_background{
+    width: 100%;
+  }
+  #home_before_top{
+    width: 100%;
+  }
+  #home_top{
+    width: 100%;
+  }
+}
+
+#home_top a{
+  color: #000;
+  text-decoration: none;
+}
+
+#home_top .sabian{
+  font-size: 20px;
+  line-height: 1.4em;
+}
+
+#home_top .text{
+  color: #fff;
+  font-size: 14px;
+  font-family: 'EB Garamond', 'Noto Serif JP', serif;
+  width: 96%;
+  text-align: right;
+  height: 200px;
+  margin: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+}
+
+@media (min-width: 600px) {
+  #home_top .text{
+    font-size: 15px;
+  } 
+}
+
+#home_top p:not(:first-child){
+  padding: 10px 0 0 0;
+  line-height: 1.3em;
+}
+
+#home_lang{
+    background: #2c2d3e;
+    padding: 20px 20px;
+}
+
+#home_about{
+    background: #261929;
+    padding: 50px 20px;
+}
+
+#home_about h2{
+  padding: 0;
+}
+
+#home_about p{
+  text-align: left;
+  padding: 50px 0 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.home header h1 span {
+  color: #fff;
+  text-shadow: 1px -1px 2px #23305F, -1px 1px 2px #23305f, 1px 1px 2px #23305f, -1px -1px 2px #23305f;
+}
+
+@media (min-width: 768px) {
+  #home_about p{
+    width: 60vw;
+  }
+}
+
+@media (max-width: 599px) {
+  .home header h1 img.logo {
+    width: 35px;
+  }
+  .home header h1 span {
+    font-size: 20px;
+    margin: -1px 0 0 7px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 767px){
+  .home header h1 span {
+    margin: -1px 0 0 7px;
+  }
+}
