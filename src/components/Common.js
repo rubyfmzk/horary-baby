@@ -1,14 +1,8 @@
 import define from '@/assets/js/define'
-import calculator_list from '@/assets/yml/calculator.yml'
 import aspect_list from '@/assets/yml/aspect.yml'
 import planet_list from '@/assets/yml/planet.yml'
 
 export default{
-/*  data(){
-    return{
-      a:"bb"
-    }
-  },*/
   created(){
     
     window.setting = {
@@ -134,26 +128,8 @@ export default{
       return parseFloat(this).intAbs()
     }
 
-    String.prototype.isForecast = function(){
-      let res = false
-      const obj = calculator_list.forecast.list
-      Object.keys(obj).forEach((k)=>{
-        if(k === this) res = true; return
-      })
-      return res
-    }
-
     Date.prototype.isSummertime = function(){
       return this.getTimezoneOffset() < this.stdTimezoneOffset();
-    }
-
-    String.prototype.isPartner = function(){
-      let res = false
-      const obj = calculator_list.relationship.list
-      Object.keys(obj).forEach((k)=>{
-        if(k === this) res = true; return
-      })
-      return res
     }
 
     // サマータイム判定

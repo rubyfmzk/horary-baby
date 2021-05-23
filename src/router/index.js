@@ -6,12 +6,17 @@ Vue.use(VueRouter)
 
 const routes = [
   {
-    path: window.lang_prefix + "/",
+    path:  '/',
     name: 'home',
     component:() => import('@/views/Home.vue'),
   },
   {
-    path: window.lang_prefix + '/predict',
+    path:  '/terms',
+    name: 'terms',
+    component:() => import('@/views/Terms.vue'),
+  },
+  {
+    path: '/predict',
     component:() => import('@/views/predict/Index.vue'),
     children: [
       {
