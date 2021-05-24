@@ -2,6 +2,9 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 //import CommonHeader from '@/components/CommonHeader.vue'
 
+import FindingThingTitle from '@/views/predict/FindingThingTitle.vue'
+import FindingThingResult from '@/views/predict/FindingThingResult.vue'
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -22,7 +25,10 @@ const routes = [
       {
         name: 'predict_finding_thing',
         path: 'finding_thing',
-        component:() => import('@/views/predict/FindingThing.vue')
+        components: {
+          title: FindingThingTitle,
+          result: FindingThingResult,
+        }
       },
     ]
   },
