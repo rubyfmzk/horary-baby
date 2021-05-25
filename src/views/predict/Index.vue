@@ -137,10 +137,17 @@
         <label class="pure-checkbox">
           <input type="radio" name="when_type" id="when_input">
         </label>
+      </div>
 
-        <div class="center">
-          <button class="predict" @click="get_result">教えてください<br>お星さま</button>
-        </div>
+      <div>
+        <h2>5. 質問内容を記入できます。（書かなくてもOK）</h2>
+        <input type="text" class="pure-input-1" placeholder="後から振り返る時に便利です">
+      </div>
+
+      <div class="center">
+        <button class="predict" @click="get_result">教えてください<br>お星さま</button>
+        <br>
+        <canvas id="horo" width="600" height="600"></canvas>
       </div>
     </section>
 
@@ -165,11 +172,251 @@ export default {
 
   created() {
     this.pl = new window.Pluto()
+
+
   },
   mounted(){
+    this.pl.setCurrentDate()
+    this.pl.getPlanets()
+    this.pl.setGeoPosition(45, 135)
+    this.houses = this.pl.getHouses('K')
+
+    const v={
+      pl: this.pl,
+      planets: this.get_adjusted_planets(),
+    }
+    this.draw_horoscope(v)
   },
 
   methods:{
+    get_adjusted_planets(){
+      const planets = []
+      for(var k in this.pl.planets){
+        if(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'].indexOf(k) < 0) continue
+
+        const v = this.pl.planets[k]
+        v.key = k
+        planets.push(v)
+      }
+
+      planets.push({key:'Ac', longitude:this.pl.houses[1]})
+      planets.push({key:'Ic', longitude:this.pl.houses[4]})
+      planets.push({key:'Dc', longitude:this.pl.houses[7]})
+      planets.push({key:'Mc', longitude:this.pl.houses[10]})
+
+      const fortune_lon = (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
+      planets.push({key:'Fortune', longitude:fortune_lon})
+
+      planets.sort(function(a,b){
+          if(a.longitude < b.longitude) return -1
+          if(a.longitude > b.longitude) return 1
+          return 0
+      })
+
+      let count = 0
+      const icon_degrees = []
+      planets.forEach((v)=>{
+        icon_degrees.push(v.longitude)
+      })
+
+      while(count<5){
+        planets.forEach((v,i)=>{
+          let p_key1 = i
+          let p_key2 = i+1 
+          let p_key3 = i+2
+          let p_key4 = i+3
+          if(p_key2 >= planets.length) p_key2 -= planets.length
+          if(p_key3 >= planets.length) p_key3 -= planets.length
+          if(p_key4 >= planets.length) p_key4 -= planets.length
+          let p1 = icon_degrees[p_key1]
+          let p2 = icon_degrees[p_key2]
+          let p3 = icon_degrees[p_key3]
+          let p4 = icon_degrees[p_key4]
+          if(p2 < p1) p2 += 360
+          if(p3 < p2) p3 += 360
+          if(p4 < p3) p4 += 360
+
+          const diff = 13
+          if(p3 - p2 < diff){
+            p2 = (p3 + p2 - diff) / 2
+            p3 = (p3 + p2 + diff) / 2
+            if(p2 < p1) p2 = p1 + 0.01
+            if(p3 > p4) p3 = p4 - 0.01
+          }
+
+          icon_degrees[p_key2] = p2 % 360
+          icon_degrees[p_key3] = p3 % 360
+        })
+
+        count++
+      }
+
+      planets.forEach((v,i)=>{
+        planets[i].icon_degree = icon_degrees[i]
+      })
+
+      return planets
+    },
+
+
+    draw_horoscope(v){
+      const canvas = this.$$('#horo')
+      const ctx = canvas.getContext('2d')
+      const circle_radius = 230
+      const outer_circle_radius = 250
+      const planet_radius = 205
+      const planets = {
+        Sun:{
+          text: '☉',
+        },
+        Moon:{
+          text: '☽',
+          ratio: 0.7,
+        },
+        Mercury:{
+          text: '☿',
+          ratio: 0.7,
+          speed: 0.985555,
+        },
+        Venus:{
+          text: '♀',
+          ratio: 0.6,
+          bold: true,
+          speed: 0.985555,
+        },
+        Mars:{
+          text: '♂',
+          ratio: 0.6,
+          bold: true,
+          speed: 0.524166,
+        },
+        Jupiter:{
+          text: '♃',
+          ratio: 0.7,
+          speed: 0.083055,
+        },
+        Saturn:{
+          text: '♄',
+          ratio: 0.7,
+          speed: 0.033611,
+        },
+        Uranus:{
+          text: '♅',
+          ratio: 0.7,
+          speed: 0.011733,
+        },
+        Neptune:{
+          text: '♆',
+          ratio: 0.7,
+          speed: 0.005973,
+        },
+        Pluto:{
+          text: '♇',
+          ratio: 0.6,
+          speed: 0.003974,
+        },
+        Ac:{
+          text: 'AC',
+          ratio: 0.3,
+        },
+        Mc:{
+          text: 'MC',
+          ratio: 0.3,
+        },
+        Dc:{
+          text: 'DC',
+          ratio: 0.3,
+        },
+        Ic:{
+          text: 'IC',
+          ratio: 0.3,
+        },
+        Fortune:{
+          text: '⊗',
+          ratio: 0.5,
+          bold: true,
+        },
+      }
+
+      console.log(v)
+
+      const ASC = v.pl.houses[1]
+
+      //原点調整
+      ctx.translate(300, 300)
+
+      ctx.strokeStyle = '#bbb'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(0, 0, outer_circle_radius, 0, Math.PI * 2, true)
+      ctx.stroke()
+
+      ctx.beginPath()
+      ctx.arc(0, 0, circle_radius, 0, Math.PI * 2, true)
+      ctx.stroke()
+
+      //目盛
+console.log(ASC)
+      for(let i=0; i<360; i++){
+        const x = Math.cos(Math.PI * (ASC + i) / 180)
+        const y = Math.sin(Math.PI * (ASC + i) / 180)
+        const ratio = i % 30 ? (i % 5 ? 0.98 : 0.95) : 0
+        ctx.beginPath()
+        ctx.moveTo(x*circle_radius, y*circle_radius)
+        ctx.lineTo(x*circle_radius*ratio, y*circle_radius*ratio)
+        ctx.stroke()
+      }
+      
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      v.planets.forEach((planet)=>{
+        const p = planets[planet.key]
+        const text = p.text
+        const r = p.ratio ? p.ratio : 1
+        const bold = p.bold ? 'bold' : ''
+        const rad = Math.PI * (180 - planet.longitude + ASC) / 180
+        const x = Math.cos(rad) * planet_radius
+        const y = Math.sin(rad) * planet_radius
+        const p_rad = Math.PI * (180 - planet.icon_degree + ASC) / 180
+        const p_x = Math.cos(p_rad) * planet_radius
+        const p_y = Math.sin(p_rad) * planet_radius
+        
+        ctx.font = parseInt(40 * r) + 'px ' + bold + ' sans-serif'
+        ctx.fillText(text, p_x*0.9, p_y*0.9)
+        ctx.font = '10px  sans-serif'
+        ctx.fillText((planet.longitude%30).int().zeroPadding(2), p_x, p_y)
+
+        ctx.beginPath()
+        ctx.strokeStyle = '#666'
+        ctx.moveTo(p_x*1.05, p_y*1.05)
+        ctx.lineTo(x*circle_radius/planet_radius, y*circle_radius/planet_radius)
+        ctx.stroke()
+
+        //スピード
+        if(p.speed){
+          const speed_rad = p_rad + 0.05
+          const speed_x1 = Math.cos(speed_rad+0.03) * planet_radius * 1.0
+          const speed_x2 = Math.cos(speed_rad) * planet_radius * 1.02
+          const speed_x3 = Math.cos(speed_rad) * planet_radius * 0.98
+          const speed_y1 = Math.sin(speed_rad+0.03) * planet_radius * 1.0
+          const speed_y2 = Math.sin(speed_rad) * planet_radius * 1.02
+          const speed_y3 = Math.sin(speed_rad) * planet_radius * 0.98
+          ctx.beginPath()
+          ctx.moveTo(speed_x1, speed_y1)
+          ctx.lineTo(speed_x2, speed_y2)
+          ctx.lineTo(speed_x3, speed_y3)
+          ctx.fill()
+        }
+      })
+
+      ctx.strokeStyle = '#f00'
+      ctx.lineWidth = 20
+      ctx.beginPath()
+      ctx.arc(0, 0, 240, Math.PI, Math.PI * 2 / 12, true)
+      ctx.stroke()
+
+    },
+
     get_result(){
       let year, month, day, hour, minute, second, lat, lon
       const timezone = 9
@@ -191,7 +438,11 @@ console.log(this.$$('#when_now'))
       this.houses = this.pl.getHouses('K')
 
       console.log(this.pl)
+
+      this.draw_horoscope()
     },
+
+
   }
 }
 </script>
@@ -202,6 +453,11 @@ h1{
 }
 [type=radio]{
     margin-right: 10px;
+}
+#horo{
+    width: 600px;
+    height: 600px;
+    border: solid 1px #0f0;
 }
 button.predict{
     font-family: 'Noto Serif JP';
