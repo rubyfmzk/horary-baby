@@ -236,7 +236,7 @@ export default {
           if(p3 < p2) p3 += 360
           if(p4 < p3) p4 += 360
 
-          const diff = 13
+          const diff = 9
           if(p3 - p2 < diff){
             p2 = (p3 + p2 - diff) / 2
             p3 = (p3 + p2 + diff) / 2
@@ -265,13 +265,15 @@ export default {
       const circle_radius = 230
       const outer_circle_radius = 250
       const planet_radius = 205
+      const house_radius = 30
       const planets = {
         Sun:{
           text: '☉',
+          ratio: 1.4,
         },
         Moon:{
           text: '☽',
-          ratio: 0.7,
+          ratio: 1,
         },
         Mercury:{
           text: '☿',
@@ -341,6 +343,8 @@ export default {
       console.log(v)
 
       const ASC = v.pl.houses[1]
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
 
       //原点調整
       ctx.translate(300, 300)
@@ -366,9 +370,27 @@ console.log(ASC)
         ctx.lineTo(x*circle_radius*ratio, y*circle_radius*ratio)
         ctx.stroke()
       }
+
+      //ハウスとサイン
+      ctx.strokeStyle = '#000'
+      ctx.lineWidth = 20
+      for(let i=0; i<12; i++){
+        const start = Math.PI * (180 + (ASC%30) - i*30) / 180
+        const end = Math.PI * (180 + (ASC%30) - (i+1)*30) / 180
+        //const color_num = 
+
+        ctx.beginPath()
+        ctx.arc(0, 0, 240, start, end, true)
+        ctx.stroke()
+
+        const rad = Math.PI * (180 + (ASC%30) - (i+0.5)*30) / 180
+        const x = Math.cos(rad) * house_radius
+        const y = Math.sin(rad) * house_radius
+        ctx.fillText((i+1), x, y)
+      }
       
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
+      ctx.strokeStyle = '#bbb'
+      ctx.lineWidth = 1
       v.planets.forEach((planet)=>{
         const p = planets[planet.key]
         const text = p.text
@@ -394,11 +416,44 @@ console.log(ASC)
 
         //スピード
         if(p.speed){
-          const speed_rad = p_rad + 0.05
-          const speed_x1 = Math.cos(speed_rad+0.03) * planet_radius * 1.0
+          let speed_flg = 1
+          if(planet.longitudeSpeed < 0) speed_flg = -1
+          else if(planet.longitudeSpeed > p.speed) speed_flg = 2
+
+          draw_triangle(speed_flg, p_rad)
+        }
+      })
+
+      
+      
+
+
+
+
+      //スピードの矢印
+      function draw_triangle(speed_flg, p_rad){
+        let arrow_start, arrow_end
+        switch(speed_flg){
+          case 1:
+            arrow_start = -0.045
+            arrow_end = -0.03
+            break
+          case -1:
+            arrow_start = 0.045
+            arrow_end = 0.03
+            break
+          case 2:
+            arrow_start = -0.045
+            arrow_end = -0.025
+            break
+        }
+
+        for(let i=0; i<Math.abs(speed_flg); i++){
+          const speed_rad = p_rad + arrow_start
+          const speed_x1 = Math.cos(speed_rad+arrow_end) * planet_radius * 1.0
           const speed_x2 = Math.cos(speed_rad) * planet_radius * 1.02
           const speed_x3 = Math.cos(speed_rad) * planet_radius * 0.98
-          const speed_y1 = Math.sin(speed_rad+0.03) * planet_radius * 1.0
+          const speed_y1 = Math.sin(speed_rad+arrow_end) * planet_radius * 1.0
           const speed_y2 = Math.sin(speed_rad) * planet_radius * 1.02
           const speed_y3 = Math.sin(speed_rad) * planet_radius * 0.98
           ctx.beginPath()
@@ -406,16 +461,11 @@ console.log(ASC)
           ctx.lineTo(speed_x2, speed_y2)
           ctx.lineTo(speed_x3, speed_y3)
           ctx.fill()
+
+          arrow_start += arrow_end
         }
-      })
-
-      ctx.strokeStyle = '#f00'
-      ctx.lineWidth = 20
-      ctx.beginPath()
-      ctx.arc(0, 0, 240, Math.PI, Math.PI * 2 / 12, true)
-      ctx.stroke()
-
-    },
+      }
+  },
 
     get_result(){
       let year, month, day, hour, minute, second, lat, lon
