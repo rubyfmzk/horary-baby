@@ -149,6 +149,22 @@
         <br>
         <canvas id="horo" width="600" height="600"></canvas>
       </div>
+
+
+
+      <div>
+        ホロスコープ有効度（ラディカル度）
+        アセンダントの度数
+        アワールーラーとASCの
+        月がボイド
+      </div>
+
+
+      <div>
+        アワールーラー
+      </div>
+
+
     </section>
 
     <router-view name="result"></router-view>
@@ -157,6 +173,7 @@
 
 <script>
 import Mixin from '@/components/Common'
+import define from '@/assets/js/define'
 
 export default {
   name: 'Predict',
@@ -173,17 +190,17 @@ export default {
   created() {
     this.pl = new window.Pluto()
 
-
   },
   mounted(){
     this.pl.setCurrentDate()
     this.pl.getPlanets()
     this.pl.setGeoPosition(45, 135)
-    this.houses = this.pl.getHouses('K')
+    this.houses = this.pl.getHouses()
 
     const v={
       pl: this.pl,
       planets: this.get_adjusted_planets(),
+      c: this.get_conditions(),
     }
     this.draw_horoscope(v)
   },
@@ -192,7 +209,7 @@ export default {
     get_adjusted_planets(){
       const planets = []
       for(var k in this.pl.planets){
-        if(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'].indexOf(k) < 0) continue
+        if(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'TrueNode'].indexOf(k) < 0) continue
 
         const v = this.pl.planets[k]
         v.key = k
@@ -204,8 +221,8 @@ export default {
       planets.push({key:'Dc', longitude:this.pl.houses[7]})
       planets.push({key:'Mc', longitude:this.pl.houses[10]})
 
-      const fortune_lon = (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
-      planets.push({key:'Fortune', longitude:fortune_lon})
+      const POF_lon = (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
+      planets.push({key:'POF', longitude:POF_lon})
 
       planets.sort(function(a,b){
           if(a.longitude < b.longitude) return -1
@@ -219,7 +236,7 @@ export default {
         icon_degrees.push(v.longitude)
       })
 
-      while(count<5){
+      while(count<30){
         planets.forEach((v,i)=>{
           let p_key1 = i
           let p_key2 = i+1 
@@ -236,6 +253,7 @@ export default {
           if(p3 < p2) p3 += 360
           if(p4 < p3) p4 += 360
 
+          //N度以内だとぶつかるので離す
           const diff = 9
           if(p3 - p2 < diff){
             p2 = (p3 + p2 - diff) / 2
@@ -259,13 +277,113 @@ export default {
     },
 
 
+    get_conditions(){
+      const res = {
+        Sun:{},
+        Moon:{},
+        Mercury:{},
+        Venus:{},
+        Mars:{},
+        Jupiter:{},
+        Saturn:{},
+        POF:{},
+      }
+      const applied_planets = [
+        {key:'Sun', orb: 17, order: 4},
+        {key:'Moon', orb: 12.5, order: 1},
+        {key:'Mercury', orb: 7, order: 2},
+        {key:'Venus', orb: 8, order: 3},
+        {key:'Mars', orb: 7.5, order: 5},
+        {key:'Jupiter', orb: 12, order: 6},
+        {key:'Saturn', orb: 10, order: 7},
+        {key:'POF', orb: 0},
+      ]
+
+      const ASC = this.pl.houses[1]
+      const pl = this.pl.planets
+      pl.POF = {
+        longitude: (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
+      }
+
+      //月のサイクルとのアスペクト
+
+      //コンバストの範囲
+      const sun_longitude = pl.Sun.longitude
+      const sun_sign_start = (sun_longitude / 30).int() * 30
+      const sun_sign_end = (sun_sign_start + 30) % 360
+      res.Sun.cazimi_start = sun_longitude - 0.17 < sun_sign_start ? sun_sign_start : sun_longitude - 0.17
+      res.Sun.cazimi_end = sun_longitude + 0.17 < sun_sign_end ? sun_sign_end : sun_longitude + 0.17
+      res.Sun.combust_start = sun_longitude - 8.5 < sun_sign_start ? sun_sign_start : sun_longitude - 8.5
+      res.Sun.combust_end = sun_longitude + 8.5 < sun_sign_end ? sun_sign_end : sun_longitude + 8.5
+      res.Sun.sunbeam_start = (sun_longitude - 17 + 360) % 360
+      res.Sun.sunbeam_end = (sun_longitude + 17) % 360
+
+      //ハウスのルーラ
+      res.houses = Array(13)
+      for(let i=0; i<12; i++){
+        res.houses[i+1] = define.SIGN_LIST[((ASC/30).int() + i) % 12].ruler
+      }
+      
+      //アスペクト（デクスター・シニスター）
+      //アンティション
+      //接近分離
+      applied_planets.forEach((p1)=>{
+        res[p1.key].aspect = {}
+
+        applied_planets.forEach((p2)=>{
+          const l1 = pl[p1.key].longitude
+          const l2 = pl[p2.key].longitude
+          const sign1 = (l1/30).int()
+          const sign2 = (l2/30).int()
+          const orb = (p1.orb + p2.orb) / 2
+          const longitude_diff = (l2 - l1 + 360) % 360
+          const longitude_diff_short = longitude_diff > 180 ? 360 - longitude_diff : longitude_diff
+          const sign_diff = (sign2 - sign1 + 12) % 12
+          const sign_diff_short = sign_diff > 6 ? sign_diff - 6 : sign_diff
+          let aspect = null
+          let dexter_sinister = null
+          if(longitude_diff_short < orb && sign_diff === 0) aspect = 'Conjunction'
+          else if(longitude_diff_short > 60 - orb && longitude_diff_short < 60 + orb && sign_diff_short === 2) aspect = 'Sextile'
+          else if(longitude_diff_short > 90 - orb && longitude_diff_short < 90 + orb && sign_diff_short === 3) aspect = 'Square'
+          else if(longitude_diff_short > 120 - orb && longitude_diff_short < 120 + orb && sign_diff_short === 4) aspect = 'Trine'
+          else if(longitude_diff_short > 180 - orb && sign_diff_short === 6) aspect = 'Opposition'
+          else if((l1 + l2 - 180).abs() < orb && (sign1 + sign2 + 6) % 12 === 11) aspect = 'Antition'
+          else if((l1 + l2 - 360).abs() < orb && (sign1 + sign2) === 11) aspect = 'Contition'
+
+          if(['Sextile', 'Square', 'Trine', 'Antition', 'Contition'].indexOf(aspect) >= 0 && p1.order && p2.order){
+            dexter_sinister = 'Sinister'
+            if((sign_diff === sign_diff_short && p1.order < p2.order) ||
+              (sign_diff !== sign_diff_short && p1.order > p2.order)){
+              dexter_sinister = 'Dexter'
+            }
+          }
+
+          res[p1.key].aspect[p2.key] = {
+            aspect: aspect,
+            dexter_sinister: dexter_sinister,
+          }
+        })
+      })
+
+
+      //プロヒビション
+
+      //エッセンシャルディグニティ
+      //レセプション
+
+console.log(res)
+      return res
+    },
+
+
     draw_horoscope(v){
       const canvas = this.$$('#horo')
       const ctx = canvas.getContext('2d')
-      const circle_radius = 230
+      const circle_radius = 220
       const outer_circle_radius = 250
-      const planet_radius = 205
-      const house_radius = 30
+      const planet_radius = 185
+      const house_radius = 40
+      const color_dark = '#a7a5bd'
       const planets = {
         Sun:{
           text: '☉',
@@ -309,7 +427,7 @@ export default {
         },
         Neptune:{
           text: '♆',
-          ratio: 0.7,
+          ratio: 0.75,
           speed: 0.005973,
         },
         Pluto:{
@@ -333,14 +451,19 @@ export default {
           text: 'IC',
           ratio: 0.3,
         },
-        Fortune:{
+        TrueNode:{
+          text: '☊',
+          ratio: 0.7,
+          bold: true,
+        },
+        POF:{
           text: '⊗',
           ratio: 0.5,
           bold: true,
         },
       }
 
-      console.log(v)
+      console.log(v, define.SIGN_LIST)
 
       const ASC = v.pl.houses[1]
       ctx.textAlign = 'center'
@@ -349,7 +472,59 @@ export default {
       //原点調整
       ctx.translate(300, 300)
 
-      ctx.strokeStyle = '#bbb'
+      //背景
+      ctx.fillStyle = '#fff'
+      ctx.beginPath()
+      ctx.arc(0, 0, outer_circle_radius, 0, 7, false)
+      ctx.fill()
+
+      //ハウスとサイン
+      ctx.strokeStyle = color_dark
+      ctx.lineWidth = outer_circle_radius - circle_radius
+      ctx.fillStyle = '#aaa'//文字の色
+      for(let i=0; i<12; i++){
+        //ハウス番号
+        const house_rad = Math.PI * (180 + (ASC%30) - (i+0.5)*30) / 180
+        const house_x = Math.cos(house_rad)
+        const house_y = Math.sin(house_rad)
+        ctx.fillText((i+1), house_x * house_radius, house_y * house_radius)
+
+        //星座の背景
+        const start = Math.PI * (180 + (ASC%30) - i*30) / 180
+        const end = Math.PI * (180 + (ASC%30) -(i+1)*30) / 180
+        ctx.beginPath()
+        ctx.arc(0, 0, outer_circle_radius - 15, start, end, true)
+        ctx.stroke()
+
+        //星座アイコン
+        const sign_rad = Math.PI * (180 + ASC - (i+0.5)*30) / 180
+        const sign_x = Math.cos(sign_rad)
+        const sign_y = Math.sin(sign_rad)
+        const sign = new Image()
+        sign.src = '/img/sign/'+define.SIGN_LIST[i].key+'.svg'
+        sign.onload = () => {
+          ctx.drawImage(sign, sign_x*circle_radius*1.06-10, sign_y*circle_radius*1.06-10, 20, 20)
+        }
+      }
+
+
+      // //サンビーム
+      // ctx.strokeStyle = '#fffbb5'
+      // let convast_start= Math.PI * (180 + ASC - (sun_lon - 8.5)) / 180
+      // let convast_end = Math.PI * (180 + ASC - (sun_lon + 8.5)) / 180
+      // ctx.arc(0, 0, circle_radius - 5, sunbeam_start, sunbeam_end, true)
+      // ctx.stroke()
+      // //コンバスト
+      // ctx.beginPath()
+      // ctx.lineWidth = 10
+      // const sun_lon = v.pl.planets.Sun.longitude
+      // const convast_start = Math.PI * (180 + ASC - (sun_lon - 17)) / 180
+      // const convast_end = Math.PI * (180 + ASC - (sun_lon + 17)) / 180
+      // ctx.arc(0, 0, circle_radius - 5, convast_start, convast_end, true)
+
+
+      //目盛
+      ctx.strokeStyle = '#c9c9c9'
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.arc(0, 0, outer_circle_radius, 0, Math.PI * 2, true)
@@ -358,37 +533,17 @@ export default {
       ctx.beginPath()
       ctx.arc(0, 0, circle_radius, 0, Math.PI * 2, true)
       ctx.stroke()
-
-      //目盛
-console.log(ASC)
       for(let i=0; i<360; i++){
         const x = Math.cos(Math.PI * (ASC + i) / 180)
         const y = Math.sin(Math.PI * (ASC + i) / 180)
-        const ratio = i % 30 ? (i % 5 ? 0.98 : 0.95) : 0
+        const ratio = i % 30 ? (i % 5 ? 0.95 : 0.92) : -1.14
         ctx.beginPath()
         ctx.moveTo(x*circle_radius, y*circle_radius)
         ctx.lineTo(x*circle_radius*ratio, y*circle_radius*ratio)
         ctx.stroke()
       }
-
-      //ハウスとサイン
-      ctx.strokeStyle = '#000'
-      ctx.lineWidth = 20
-      for(let i=0; i<12; i++){
-        const start = Math.PI * (180 + (ASC%30) - i*30) / 180
-        const end = Math.PI * (180 + (ASC%30) - (i+1)*30) / 180
-        //const color_num = 
-
-        ctx.beginPath()
-        ctx.arc(0, 0, 240, start, end, true)
-        ctx.stroke()
-
-        const rad = Math.PI * (180 + (ASC%30) - (i+0.5)*30) / 180
-        const x = Math.cos(rad) * house_radius
-        const y = Math.sin(rad) * house_radius
-        ctx.fillText((i+1), x, y)
-      }
       
+      //惑星
       ctx.strokeStyle = '#bbb'
       ctx.lineWidth = 1
       v.planets.forEach((planet)=>{
@@ -404,12 +559,12 @@ console.log(ASC)
         const p_y = Math.sin(p_rad) * planet_radius
         
         ctx.font = parseInt(40 * r) + 'px ' + bold + ' sans-serif'
-        ctx.fillText(text, p_x*0.9, p_y*0.9)
-        ctx.font = '10px  sans-serif'
+        ctx.fillText(text, p_x*0.87, p_y*0.87)
+        ctx.font = '10px sans-serif'
         ctx.fillText((planet.longitude%30).int().zeroPadding(2), p_x, p_y)
 
         ctx.beginPath()
-        ctx.strokeStyle = '#666'
+        ctx.strokeStyle = color_dark
         ctx.moveTo(p_x*1.05, p_y*1.05)
         ctx.lineTo(x*circle_radius/planet_radius, y*circle_radius/planet_radius)
         ctx.stroke()
@@ -427,23 +582,20 @@ console.log(ASC)
       
       
 
-
-
-
       //スピードの矢印
       function draw_triangle(speed_flg, p_rad){
         let arrow_start, arrow_end
         switch(speed_flg){
           case 1:
-            arrow_start = -0.045
+            arrow_start = -0.055
             arrow_end = -0.03
             break
           case -1:
-            arrow_start = 0.045
+            arrow_start = 0.055
             arrow_end = 0.03
             break
           case 2:
-            arrow_start = -0.045
+            arrow_start = -0.055
             arrow_end = -0.025
             break
         }
