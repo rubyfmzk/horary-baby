@@ -330,6 +330,7 @@ export default {
       }
       
       //アスペクト
+
       applied_planets.forEach((p1)=>{
         res[p1.key].aspect = {}
 
