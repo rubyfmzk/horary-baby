@@ -2,6 +2,102 @@ const define = {
   IMG_BASE_URL: 'https://s3-ap-northeast-1.amazonaws.com/sabian-symbols/',
   FULL_SIZE_IMG_BASE_URL: 'https://s3-ap-northeast-1.amazonaws.com/sabian-symbols/1080px/',
   PLANET_ICON_DIR: '/img/planet/',
+  PLANET_LIST: {
+    Sun:{
+      text: '☉',
+      ratio: 1.4,
+      orb: 17,
+      chaldean_order: 4,
+    },
+    Moon:{
+      text: '☽',
+      ratio: 1,
+      orb: 12.5,
+      chaldean_order: 1,
+    },
+    Mercury:{
+      text: '☿',
+      ratio: 0.7,
+      speed: 0.985555,
+      orb: 7,
+      chaldean_order: 2,
+    },
+    Venus:{
+      text: '♀',
+      ratio: 0.6,
+      bold: true,
+      speed: 0.985555,
+      orb: 8,
+      chaldean_order: 3,
+    },
+    Mars:{
+      text: '♂',
+      ratio: 0.6,
+      bold: true,
+      speed: 0.524166,
+      orb: 7.5,
+      chaldean_order: 5,
+    },
+    Jupiter:{
+      text: '♃',
+      ratio: 0.7,
+      speed: 0.083055,
+      orb: 12,
+      chaldean_order: 6,
+    },
+    Saturn:{
+      text: '♄',
+      ratio: 0.7,
+      speed: 0.033611,
+      orb: 10,
+      chaldean_order: 7,
+    },
+    Uranus:{
+      text: '♅',
+      ratio: 0.7,
+      speed: 0.011733,
+    },
+    Neptune:{
+      text: '♆',
+      ratio: 0.75,
+      speed: 0.005973,
+    },
+    Pluto:{
+      text: '♇',
+      ratio: 0.6,
+      speed: 0.003974,
+    },
+    Ac:{
+      text: 'AC',
+      ratio: 0.3,
+    },
+    Mc:{
+      text: 'MC',
+      ratio: 0.3,
+    },
+    Dc:{
+      text: 'DC',
+      ratio: 0.3,
+    },
+    Ic:{
+      text: 'IC',
+      ratio: 0.3,
+    },
+    TrueNode:{
+      text: '☊',
+      ratio: 0.7,
+      bold: true,
+      orb: 0,
+      chaldean_order: 0,
+    },
+    POF:{
+      text: '⊗',
+      ratio: 0.5,
+      bold: true,
+      orb: 0,
+      chaldean_order: 0,
+    },
+  },
   SIGN_LIST: [
     {
       key: 'Aries',
@@ -40,7 +136,7 @@ const define = {
     {
       key: 'Gemini',
       ruler:'Mercury',
-      exaltation:{n:3, p:'NothNode'},
+      exaltation:{n:3, p:'NorthNode'},
       day_triplicity:'Saturn',
       night_triplicity:'Mercury',
       term:[
@@ -209,10 +305,6 @@ const define = {
     },
   ],
   cookie:{
-    orb_midpoint: 1.5,
-    orb_harmonics: 5,
-    true_mean_node: 0,
-    true_mean_lilith: 0,
   },
   year_milisecond: 365.2425 * 24 * 60 * 60 * 1000,
 }

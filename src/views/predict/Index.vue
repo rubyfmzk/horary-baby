@@ -200,7 +200,7 @@ export default {
     const v={
       pl: this.pl,
       planets: this.get_adjusted_planets(),
-      c: this.get_conditions(),
+      c: this.getConditions(),
     }
     this.draw_horoscope(v)
   },
@@ -276,177 +276,6 @@ export default {
       return planets
     },
 
-
-    get_conditions(){
-      const res = {
-        Sun:{},
-        Moon:{},
-        Mercury:{},
-        Venus:{},
-        Mars:{},
-        Jupiter:{},
-        Saturn:{},
-        POF:{},
-      }
-      const essential_planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn']
-      const applied_planets = [
-        {key:'Sun',     orb: 17,   weight: 4},
-        {key:'Moon',    orb: 12.5, weight: 1},
-        {key:'Mercury', orb: 7,    weight: 2},
-        {key:'Venus',   orb: 8,    weight: 3},
-        {key:'Mars',    orb: 7.5,  weight: 5},
-        {key:'Jupiter', orb: 12,   weight: 6},
-        {key:'Saturn',  orb: 10,   weight: 7},
-        {key:'POF',     orb: 0,    weight: 0},
-      ]
-      const sign_list = define.SIGN_LIST
-
-      const ASC = this.pl.houses[1]
-      const pl = this.pl.planets
-      pl.POF = {
-        longitude: (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
-      }
-
-      //月のサイクルとのアスペクト
-
-      //コンバストの範囲
-      const sun_longitude = pl.Sun.longitude
-      const sun_sign_start = (sun_longitude / 30).int() * 30
-      const sun_sign_end = (sun_sign_start + 30) % 360
-      res.Sun.cazimi_start = sun_longitude - 0.17 < sun_sign_start ? sun_sign_start : sun_longitude - 0.17
-      res.Sun.cazimi_end = sun_longitude + 0.17 < sun_sign_end ? sun_sign_end : sun_longitude + 0.17
-      res.Sun.combust_start = sun_longitude - 8.5 < sun_sign_start ? sun_sign_start : sun_longitude - 8.5
-      res.Sun.combust_end = sun_longitude + 8.5 < sun_sign_end ? sun_sign_end : sun_longitude + 8.5
-      res.Sun.sunbeam_start = (sun_longitude - 17 + 360) % 360
-      res.Sun.sunbeam_end = (sun_longitude + 17) % 360
-
-      //夜か昼か
-      const is_night = (ASC - sun_longitude + 360) % 360 > 180
-
-      //ハウスのルーラ
-      res.houses = Array(13)
-      for(let i=0; i<12; i++){
-        res.houses[i+1] = sign_list[((ASC/30).int() + i) % 12].ruler
-      }
-      
-      //アスペクト
-
-      applied_planets.forEach((p1)=>{
-        res[p1.key].aspect = {}
-
-        applied_planets.forEach((p2)=>{
-          const light_p = p1.weight < p2.weight ? p1 : p2
-          const heavy_p = p1.weight > p2.weight ? p1 : p2
-          const light_lon = pl[light_p.key].longitude
-          const heavy_lon = pl[heavy_p.key].longitude
-          const light_sign = (light_lon/30).int()
-          const heavy_sign = (heavy_lon/30).int()
-          const orb = (p1.orb + p2.orb) / 2
-          const longitude_diff = (light_lon - heavy_lon + 360) % 360
-          const longitude_diff_short = longitude_diff > 180 ? 360 - longitude_diff : longitude_diff
-          const sign_diff = (light_sign - heavy_sign + 12) % 12
-          const sign_diff_short = sign_diff > 6 ? 12 - sign_diff : sign_diff
-          let aspect, dexter_sinister, approaching_separating, is_narrow_diff, partile
-
-          if(longitude_diff_short < orb && sign_diff === 0){
-            aspect = 'Conjunction'
-            is_narrow_diff = false
-            partile = light_lon.int() === heavy_lon.int()
-          }
-          else if((longitude_diff_short - 60).abs() < orb && sign_diff_short === 2){
-            aspect = 'Sextile'
-            is_narrow_diff = longitude_diff_short < 60
-          }
-          else if((longitude_diff_short - 90).abs() < orb && sign_diff_short === 3){
-            aspect = 'Square'
-            is_narrow_diff = longitude_diff_short < 90
-          }
-          else if((longitude_diff_short - 120).abs() < orb && sign_diff_short === 4){
-            aspect = 'Trine'
-            is_narrow_diff = longitude_diff_short < 120
-          }
-          else if((longitude_diff_short - 180).abs() < orb && sign_diff_short === 6){
-            aspect = 'Opposition'
-            is_narrow_diff = true
-          }
-          //アンティション
-          else if((light_lon + heavy_lon - 180).abs() < orb && (light_sign + heavy_sign + 6) % 12 === 11){
-            aspect = 'Antition'
-            is_narrow_diff = light_lon + heavy_lon - 180 < 0
-          }
-          else if((light_lon + heavy_lon - 360).abs() < orb && (light_sign + heavy_sign) === 11){
-            aspect = 'Contition'
-            is_narrow_diff = light_lon + heavy_lon - 360 > 0
-          }
-
-          //惑星のみ
-          if(aspect && p1.weight && p2.weight){
-            const light_speed = pl[light_p.key].longitudeSpeed > 0 ? 1 : 0
-            approaching_separating = is_narrow_diff ^ light_speed ^ (longitude_diff > 180) ? 'Separating' : 'Approaching'
-
-            //デクスター・シニスター
-            if(['Sextile', 'Square', 'Trine', 'Antition', 'Contition'].indexOf(aspect) >= 0){
-              dexter_sinister = 'Dexter'
-              if(sign_diff === sign_diff_short){
-                dexter_sinister = 'Sinister'
-              }
-            }
-          }
-
-          res[p1.key].aspect[p2.key] = {
-            aspect: aspect,
-            dexter_sinister: dexter_sinister,
-            approaching_separating: approaching_separating,
-            partile: partile,
-          }
-        })
-      })
-
-
-      //プロヒビション
-
-
-      //エッセンシャルディグニティ
-      //ミューチュアルレセプション
-      essential_planets.forEach((p)=>{
-        const longitude = pl[p].longitude
-        const sign_num = (longitude / 30).int()
-        const degree = longitude % 30
-        const sign_info = sign_list[sign_num]
-        const which_tripricity = is_night ? 'night_triplicity' : 'day_triplicity'
-
-        res[p].domicile = sign_info.ruler === p
-        res[p].exaltation = sign_info.exaltation.p === p
-        res[p].triplicity = sign_info[which_tripricity] === p
-        res[p].detriment = sign_info.detriment === p
-        res[p].fall = sign_info.fall === p
-
-        res[p].term = false
-        sign_info.term.forEach((v,i)=>{
-          const min_degree = i ? sign_info.term[i-1] : 0
-          if(degree >= min_degree && degree < v.n && p === v.p){
-            res[p].term = true
-            return
-          }
-        })
-
-        res[p].face = false
-        sign_info.face.forEach((v,i)=>{
-          const min_degree = i * 10
-          if(degree >= min_degree && degree < (i+1)*10 && p === v.p){
-            res[p].face = true
-            return
-          }
-        })
-      })
-
-
-
-console.log(res, is_night)
-      return res
-    },
-
-
     draw_horoscope(v){
       const canvas = this.$$('#horo')
       const ctx = canvas.getContext('2d')
@@ -455,84 +284,7 @@ console.log(res, is_night)
       const planet_radius = 185
       const house_radius = 40
       const color_dark = '#a7a5bd'
-      const planets = {
-        Sun:{
-          text: '☉',
-          ratio: 1.4,
-        },
-        Moon:{
-          text: '☽',
-          ratio: 1,
-        },
-        Mercury:{
-          text: '☿',
-          ratio: 0.7,
-          speed: 0.985555,
-        },
-        Venus:{
-          text: '♀',
-          ratio: 0.6,
-          bold: true,
-          speed: 0.985555,
-        },
-        Mars:{
-          text: '♂',
-          ratio: 0.6,
-          bold: true,
-          speed: 0.524166,
-        },
-        Jupiter:{
-          text: '♃',
-          ratio: 0.7,
-          speed: 0.083055,
-        },
-        Saturn:{
-          text: '♄',
-          ratio: 0.7,
-          speed: 0.033611,
-        },
-        Uranus:{
-          text: '♅',
-          ratio: 0.7,
-          speed: 0.011733,
-        },
-        Neptune:{
-          text: '♆',
-          ratio: 0.75,
-          speed: 0.005973,
-        },
-        Pluto:{
-          text: '♇',
-          ratio: 0.6,
-          speed: 0.003974,
-        },
-        Ac:{
-          text: 'AC',
-          ratio: 0.3,
-        },
-        Mc:{
-          text: 'MC',
-          ratio: 0.3,
-        },
-        Dc:{
-          text: 'DC',
-          ratio: 0.3,
-        },
-        Ic:{
-          text: 'IC',
-          ratio: 0.3,
-        },
-        TrueNode:{
-          text: '☊',
-          ratio: 0.7,
-          bold: true,
-        },
-        POF:{
-          text: '⊗',
-          ratio: 0.5,
-          bold: true,
-        },
-      }
+      const planets = define.PLANET_LIST
 
       console.log(v, define.SIGN_LIST)
 
@@ -661,15 +413,15 @@ console.log(res, is_night)
         let arrow_start, arrow_end
         switch(speed_flg){
           case 1:
-            arrow_start = -0.055
+            arrow_start = -0.05
             arrow_end = -0.03
             break
           case -1:
-            arrow_start = 0.055
+            arrow_start = 0.05
             arrow_end = 0.03
             break
           case 2:
-            arrow_start = -0.055
+            arrow_start = -0.05
             arrow_end = -0.025
             break
         }
@@ -691,7 +443,7 @@ console.log(res, is_night)
           arrow_start += arrow_end
         }
       }
-  },
+    },
 
     get_result(){
       let year, month, day, hour, minute, second, lat, lon

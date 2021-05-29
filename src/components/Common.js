@@ -361,6 +361,280 @@ export default{
       return null;
     },
 
+
+
+    getConditions(){
+      const res = {
+        Sun:{},
+        Moon:{},
+        Mercury:{},
+        Venus:{},
+        Mars:{},
+        Jupiter:{},
+        Saturn:{},
+        POF:{},
+      }
+      const essential_planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'POF']
+      const planet_list = define.PLANET_LIST
+      const sign_list = define.SIGN_LIST
+      const ASC = this.pl.houses[1]
+      const pl = this.pl.planets
+      const ayanamsha = this.pl.getAyanamsha()
+      const Algol = (72.66 + ayanamsha) % 360
+      const Regulus = (133.33 + ayanamsha) % 360
+      const Spica = (187.33 + ayanamsha) % 360
+
+      pl.POF = {
+        longitude: (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
+      }
+
+      //コンバストの範囲
+      const sun_longitude = pl.Sun.longitude
+      const sun_sign_start = (sun_longitude / 30).int() * 30
+      const sun_sign_end = sun_sign_start + 30
+      res.Sun.cazimi_start = sun_longitude - 0.17 < sun_sign_start ? sun_sign_start : sun_longitude - 0.17
+      res.Sun.cazimi_end = sun_longitude + 0.17 > sun_sign_end ? sun_sign_end : sun_longitude + 0.17
+      res.Sun.combust_start = sun_longitude - 8.5 < sun_sign_start ? sun_sign_start : sun_longitude - 8.5
+      res.Sun.combust_end = sun_longitude + 8.5 > sun_sign_end ? sun_sign_end : sun_longitude + 8.5
+      res.Sun.sunbeam_start = (sun_longitude - 17 + 360) % 360
+      res.Sun.sunbeam_end = (sun_longitude + 17) % 360
+
+      //夜か昼か
+      const is_night = (ASC - sun_longitude + 360) % 360 > 180
+
+      //ハウスのルーラ
+      res.house_rulers = Array(13)
+      res.house_cusps = Array(13)
+      for(let i=0; i<12; i++){
+        res.house_rulers[i+1] = sign_list[((ASC/30).int() + i) % 12].ruler
+        res.house_cusps[i+1] = ((ASC/30).int() + i) * 30 % 360
+      }
+      
+      //エッセンシャルディグニティ
+      essential_planets.forEach((p)=>{
+        const longitude = pl[p].longitude
+        const sign_num = (longitude / 30).int()
+        const degree = longitude % 30
+        const sign_info = sign_list[sign_num]
+        const which_tripricity = is_night ? 'night_triplicity' : 'day_triplicity'
+
+        res[p].dignity = {}
+        res[p].dignity.domicile = {
+          is: sign_info.ruler === p,
+          p: sign_info.ruler,
+        }
+        res[p].dignity.exaltation = {
+          is: sign_info.exaltation.p === p,
+          p: sign_info.exaltation.p
+        }
+        res[p].dignity.triplicity = {
+          is: sign_info[which_tripricity] === p,
+          p: sign_info[which_tripricity],
+        }
+        res[p].dignity.detriment = {
+          is: sign_info.detriment === p,
+          p: sign_info.detriment,
+        }
+        res[p].dignity.fall = {
+          is: sign_info.fall === p,
+          p: sign_info.fall,
+        }
+
+        res[p].dignity.term = {
+          is: false,
+          p: null,
+        }
+        sign_info.term.forEach((v,i)=>{
+          const min_degree = i ? sign_info.term[i-1].n : 0
+          if(degree >= min_degree && degree < v.n){
+            res[p].dignity.term.p = v.p
+            if(p === v.p) res[p].dignity.term.is = true
+            return
+          }
+        })
+
+        res[p].dignity.face = {
+          is: false,
+          p: null,
+        }
+        sign_info.face.forEach((v,i)=>{
+          const min_degree = i * 10
+          if(degree >= min_degree && degree < (i+1)*10){
+            res[p].dignity.face.p = v
+            if(p === v) res[p].dignity.face.is = true
+            return
+          }
+        })
+      })
+
+      //ミューチュアルレセプション
+      essential_planets.forEach((p)=>{
+        res[p].dignity.domicile.mutual = !res[p].dignity.domicile.is && p === res[res[p].dignity.domicile.p].dignity.domicile.p
+        res[p].dignity.exaltation.mutual = !res[p].dignity.exaltation.is && res[res[p].dignity.exaltation.p] && p === res[res[p].dignity.exaltation.p].dignity.exaltation.p
+        res[p].dignity.triplicity.mutual = !res[p].dignity.triplicity.is && p === res[res[p].dignity.triplicity.p].dignity.triplicity.p
+        res[p].dignity.detriment.mutual = !res[p].dignity.detriment.is && p === res[res[p].dignity.detriment.p].dignity.detriment.p
+        res[p].dignity.term.mutual = !res[p].dignity.term.is && p === res[res[p].dignity.term.p].dignity.term.p
+        res[p].dignity.face.mutual = !res[p].dignity.face.is && p === res[res[p].dignity.face.p].dignity.face.p
+        res[p].dignity.fall.mutual = !res[p].dignity.fall.is && res[res[p].dignity.fall.p] && p === res[res[p].dignity.fall.p].dignity.fall.p
+      })
+      
+      //アスペクト
+      essential_planets.forEach((p1)=>{
+        res[p1].aspect = {}
+
+        essential_planets.forEach((p2)=>{
+          const light_p = planet_list[p1].chaldean_order < planet_list[p2].chaldean_order ? p1 : p2
+          const heavy_p = planet_list[p1].chaldean_order > planet_list[p2].chaldean_order ? p1 : p2
+          const light_lon = pl[light_p].longitude
+          const heavy_lon = pl[heavy_p].longitude
+          const light_sign = (light_lon/30).int()
+          const heavy_sign = (heavy_lon/30).int()
+          const orb = (planet_list[p1].orb + planet_list[p2].orb) / 2
+          const longitude_diff = (light_lon - heavy_lon + 360) % 360
+          const longitude_diff_short = longitude_diff > 180 ? 360 - longitude_diff : longitude_diff
+          const sign_diff = (light_sign - heavy_sign + 12) % 12
+          const sign_diff_short = sign_diff > 6 ? 12 - sign_diff : sign_diff
+          let aspect, dexter_sinister, approaching_separating, is_narrow_diff, partile
+
+          if(longitude_diff_short < orb && sign_diff === 0){
+            aspect = 'Conjunction'
+            is_narrow_diff = false
+            partile = light_lon.int() === heavy_lon.int()
+          }
+          else if((longitude_diff_short - 60).abs() < orb && sign_diff_short === 2){
+            aspect = 'Sextile'
+            is_narrow_diff = longitude_diff_short < 60
+          }
+          else if((longitude_diff_short - 90).abs() < orb && sign_diff_short === 3){
+            aspect = 'Square'
+            is_narrow_diff = longitude_diff_short < 90
+          }
+          else if((longitude_diff_short - 120).abs() < orb && sign_diff_short === 4){
+            aspect = 'Trine'
+            is_narrow_diff = longitude_diff_short < 120
+          }
+          else if((longitude_diff_short - 180).abs() < orb && sign_diff_short === 6){
+            aspect = 'Opposition'
+            is_narrow_diff = true
+          }
+          //アンティション
+          else if((light_lon + heavy_lon - 180).abs() < orb && (light_sign + heavy_sign + 6) % 12 === 11){
+            aspect = 'Antition'
+            is_narrow_diff = light_lon + heavy_lon - 180 < 0
+          }
+          else if((light_lon + heavy_lon - 360).abs() < orb && (light_sign + heavy_sign) === 11){
+            aspect = 'Contition'
+            is_narrow_diff = light_lon + heavy_lon - 360 > 0
+          }
+
+          //惑星のみ
+          if(aspect && planet_list[p1].chaldean_order && planet_list[p2].chaldean_order){
+            const light_speed = pl[light_p].longitudeSpeed > 0 ? 1 : 0
+            approaching_separating = is_narrow_diff ^ light_speed ^ (longitude_diff > 180) ? 'Separating' : 'Approaching'
+
+            //デクスター・シニスター
+            if(['Sextile', 'Square', 'Trine', 'Antition', 'Contition'].indexOf(aspect) >= 0){
+              dexter_sinister = 'Dexter'
+              if(sign_diff === sign_diff_short){
+                dexter_sinister = 'Sinister'
+              }
+            }
+          }
+
+          res[p1].aspect[p2] = {
+            aspect: aspect,
+            dexter_sinister: dexter_sinister,
+            approaching_separating: approaching_separating,
+            partile: partile,
+          }
+        })
+      })
+
+      //月のサイクルとのアスペクト
+      res.Moon.cycle = []
+      const moon_longitude = pl.Moon.longitude
+      const moon_sign = (moon_longitude / 30).int()
+      essential_planets.forEach((p)=>{
+        const p_sign = (pl[p].longitude / 30).int()
+        let moon_aspect = null
+        if(moon_sign === p_sign) moon_aspect = 'Conjunction'
+        else if((moon_sign - p_sign).abs() === 2) moon_aspect = 'Sextile'
+        else if((moon_sign - p_sign).abs() === 3) moon_aspect = 'Square'
+        else if((moon_sign - p_sign).abs() === 4) moon_aspect = 'Trine'
+        else if((moon_sign - p_sign).abs() === 6) moon_aspect = 'Opposition'
+
+        res.Moon.cycle.push({
+          p: p,
+          degree: pl[p].longitude % 30,
+          moon_aspect: moon_aspect,
+        })
+      })
+      res.Moon.cycle.sort(function(a,b){
+          if(a.degree <= b.degree) return -1
+          if(a.degree > b.degree) return 1
+      })
+
+
+      //その他
+      essential_planets.forEach((p)=>{
+        const longitude = pl[p].longitude
+
+        //オリエンタル・オクシデンタル
+        if(p !== 'Sun'){
+          res[p].Sun = {}
+          const diff_p_sun = (sun_longitude - longitude + 360) % 360
+          res[p].Sun.oriental_occidental = diff_p_sun >= 0 && diff_p_sun < 180 ? 'Oriental' : 'Occidental'
+
+          res[p].Sun.diff = null
+          //カジミ
+          if(longitude > res.Sun.cazimi_start && longitude < res.Sun.cazimi_end){
+            res[p].Sun.diff = 'Cazimi'
+          }
+          //コンバスト
+          else if(longitude > res.Sun.conbust_start && longitude < res.Sun.conbust_end){
+            res[p].Sun.diff = 'Conbust'
+          }
+          //サンビーム
+          else if(longitude > res.Sun.sunbeam_start && longitude < res.Sun.sunbeam_end ||
+                  res.Sun.sunbeam_start > res.Sun.sunbeam_end && longitude >= res.Sun.sunbeam_start ||
+                  res.Sun.sunbeam_start > res.Sun.sunbeam_end && longitude < res.Sun.sunbeam_end ){
+            res[p].Sun.diff = 'Sunbeam'
+          }
+        }
+
+        // 恒星・ノード
+        res[p].conjunction = {
+          degree5_Algol: (Algol - longitude).abs() < 2.5,
+          partile_Regulus: longitude.int() === Regulus.int(),
+          partile_Spica: longitude.int() === Spica.int(),
+          partile_NorthNode: longitude.int() === pl.TrueNode.longitude.int(),
+          partile_SouthNode: longitude.int() === (pl.TrueNode.longitude + 180).int() % 360,
+        }
+
+
+        //ハウス
+        for(let i=1; i<=12; i++){
+          const ii = i == 12 ? 1 : i+1
+          const n1 = res.house_cusps[i]
+          const n2 = res.house_cusps[ii]
+          if(longitude >= n1 && longitude < n2 ||
+             n1 > n2 && longitude >= n1 ||
+             n1 > n2 && longitude < n2){
+            res[p].house = i
+          }
+        }
+        
+      })
+
+
+      //プロヒビション
+
+
+console.log(res, is_night)
+      return res
+    },
+
+
     getDegreeInfo(longitude, is_int){
       if(longitude < 0) longitude += parseInt(longitude / 360 + 1) * 360
       longitude = parseFloat(longitude) % 360
