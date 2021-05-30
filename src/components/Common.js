@@ -348,6 +348,197 @@ export default{
       return false
     },
 
+    drawHoroscope(r){
+      const canvas = this.$$('#horo')
+      const ctx = canvas.getContext('2d')
+      const circle_radius = 220
+      const outer_circle_radius = 250
+      const planet_radius = 185
+      const house_radius = 40
+      const color_dark = '#a7a5bd'
+      const planets = define.PLANET_LIST
+      const color_change = {
+        house: {},
+        planet: {},
+      }
+
+console.log(r, define.SIGN_LIST)
+
+      const ASC = r.pl.houses[1]
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+
+      if(r.horo_info && r.horo_info.significator){
+        const color = '#e08e14'
+        const house = r.horo_info.significator.house
+        const planet = r.c.house[house.int()].ruler
+        color_change.house[house] = color
+        color_change.planet[planet] = color
+      }
+
+      //原点調整
+      ctx.translate(300, 300)
+
+      //背景
+      ctx.fillStyle = '#fff'
+      ctx.beginPath()
+      ctx.arc(0, 0, outer_circle_radius, 0, 7, false)
+      ctx.fill()
+
+      //ハウスとサイン
+      ctx.lineWidth = outer_circle_radius - circle_radius
+      ctx.fillStyle = '#aaa'//文字の色
+      for(let i=0; i<12; i++){
+        //ハウス番号
+        const house_rad = Math.PI * (180 + (ASC%30) - (i+0.5)*30) / 180
+        const house_x = Math.cos(house_rad)
+        const house_y = Math.sin(house_rad)
+        ctx.fillText((i+1), house_x * house_radius, house_y * house_radius)
+
+        //星座の背景
+        const start = Math.PI * (180 + (ASC%30) - i*30) / 180
+        const end = Math.PI * (180 + (ASC%30) -(i+1)*30) / 180
+        if(color_change.house[i+1]){
+          ctx.strokeStyle = color_change.house[i+1]
+        }
+        else{
+          ctx.strokeStyle = color_dark
+        }
+        ctx.beginPath()
+        ctx.arc(0, 0, outer_circle_radius - 15, start, end, true)
+        ctx.stroke()
+
+        //星座アイコン
+        const sign_rad = Math.PI * (180 + ASC - (i+0.5)*30) / 180
+        const sign_x = Math.cos(sign_rad)
+        const sign_y = Math.sin(sign_rad)
+        const sign = new Image()
+        sign.src = '/img/sign/'+define.SIGN_LIST[i].key+'.svg'
+        sign.onload = () => {
+          ctx.drawImage(sign, sign_x*circle_radius*1.06-10, sign_y*circle_radius*1.06-10, 20, 20)
+        }
+      }
+
+
+      // //サンビーム
+      // ctx.strokeStyle = '#fffbb5'
+      // let convast_start= Math.PI * (180 + ASC - (sun_lon - 8.5)) / 180
+      // let convast_end = Math.PI * (180 + ASC - (sun_lon + 8.5)) / 180
+      // ctx.arc(0, 0, circle_radius - 5, sunbeam_start, sunbeam_end, true)
+      // ctx.stroke()
+      // //コンバスト
+      // ctx.beginPath()
+      // ctx.lineWidth = 10
+      // const sun_lon = v.pl.planets.Sun.longitude
+      // const convast_start = Math.PI * (180 + ASC - (sun_lon - 17)) / 180
+      // const convast_end = Math.PI * (180 + ASC - (sun_lon + 17)) / 180
+      // ctx.arc(0, 0, circle_radius - 5, convast_start, convast_end, true)
+
+
+      //目盛
+      ctx.strokeStyle = '#c9c9c9'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(0, 0, outer_circle_radius, 0, Math.PI * 2, true)
+      ctx.stroke()
+
+      ctx.beginPath()
+      ctx.arc(0, 0, circle_radius, 0, Math.PI * 2, true)
+      ctx.stroke()
+      for(let i=0; i<360; i++){
+        const x = Math.cos(Math.PI * (ASC + i) / 180)
+        const y = Math.sin(Math.PI * (ASC + i) / 180)
+        const ratio = i % 30 ? (i % 5 ? 0.96 : 0.92) : -1.14
+        ctx.beginPath()
+        ctx.moveTo(x*circle_radius, y*circle_radius)
+        ctx.lineTo(x*circle_radius*ratio, y*circle_radius*ratio)
+        ctx.stroke()
+      }
+      
+      //惑星
+      ctx.lineWidth = 1
+      r.planets.forEach((planet)=>{
+        const p = planets[planet.key]
+        const text = p.text
+        const r = p.ratio ? p.ratio : 1
+        const bold = p.bold ? 'bold' : ''
+        const rad = Math.PI * (180 - planet.longitude + ASC) / 180
+        const x = Math.cos(rad) * planet_radius
+        const y = Math.sin(rad) * planet_radius
+        const p_rad = Math.PI * (180 - planet.icon_degree + ASC) / 180
+        const p_x = Math.cos(p_rad) * planet_radius
+        const p_y = Math.sin(p_rad) * planet_radius
+
+        //色
+        if(color_change.planet[planet.key]){
+          ctx.strokeStyle = color_change.planet[planet.key]
+          ctx.fillStyle = color_change.planet[planet.key]
+        }
+        else{
+          ctx.strokeStyle = color_dark
+          ctx.fillStyle = '#aaa'//文字の色
+        }
+
+        ctx.font = parseInt(40 * r) + 'px ' + bold + ' sans-serif'
+        ctx.fillText(text, p_x*0.87, p_y*0.87)
+        ctx.font = '10px sans-serif'
+        ctx.fillText((planet.longitude%30).int().zeroPadding(2), p_x, p_y)
+
+        ctx.beginPath()
+        ctx.moveTo(p_x*1.05, p_y*1.05)
+        ctx.lineTo(x*circle_radius/planet_radius, y*circle_radius/planet_radius)
+        ctx.stroke()
+
+        //スピード
+        if(p.speed){
+          let speed_flg = 1
+          if(planet.longitudeSpeed < 0) speed_flg = -1
+          else if(planet.longitudeSpeed > p.speed) speed_flg = 2
+
+          draw_triangle(speed_flg, p_rad)
+        }
+        else if(planet.key === 'Sun' || planet.key === 'Moon'){
+          draw_triangle(1, p_rad)
+        }
+      })
+
+      //スピードの矢印
+      function draw_triangle(speed_flg, p_rad){
+        let arrow_start, arrow_end
+        switch(speed_flg){
+          case 1:
+            arrow_start = -0.05
+            arrow_end = -0.03
+            break
+          case -1:
+            arrow_start = 0.05
+            arrow_end = 0.03
+            break
+          case 2:
+            arrow_start = -0.05
+            arrow_end = -0.025
+            break
+        }
+
+        for(let i=0; i<Math.abs(speed_flg); i++){
+          const speed_rad = p_rad + arrow_start
+          const speed_x1 = Math.cos(speed_rad+arrow_end) * planet_radius * 1.0
+          const speed_x2 = Math.cos(speed_rad) * planet_radius * 1.02
+          const speed_x3 = Math.cos(speed_rad) * planet_radius * 0.98
+          const speed_y1 = Math.sin(speed_rad+arrow_end) * planet_radius * 1.0
+          const speed_y2 = Math.sin(speed_rad) * planet_radius * 1.02
+          const speed_y3 = Math.sin(speed_rad) * planet_radius * 0.98
+          ctx.beginPath()
+          ctx.moveTo(speed_x1, speed_y1)
+          ctx.lineTo(speed_x2, speed_y2)
+          ctx.lineTo(speed_x3, speed_y3)
+          ctx.fill()
+
+          arrow_start += arrow_end
+        }
+      }
+    },
+
     getAspect(degree1, degree2, accepted_orb){
       var diff = this.getDiffAbs(degree1, degree2);
 
@@ -360,8 +551,6 @@ export default{
       }
       return null;
     },
-
-
 
     getConditions(){
       const res = {
@@ -392,8 +581,8 @@ export default{
       const sun_longitude = pl.Sun.longitude
       const sun_sign_start = (sun_longitude / 30).int() * 30
       const sun_sign_end = sun_sign_start + 30
-      res.Sun.cazimi_start = sun_longitude - 0.17 < sun_sign_start ? sun_sign_start : sun_longitude - 0.17
-      res.Sun.cazimi_end = sun_longitude + 0.17 > sun_sign_end ? sun_sign_end : sun_longitude + 0.17
+      res.Sun.cazimi_start = sun_longitude - 17/60 < sun_sign_start ? sun_sign_start : sun_longitude - 17/60
+      res.Sun.cazimi_end = sun_longitude + 17/60 > sun_sign_end ? sun_sign_end : sun_longitude + 17/60
       res.Sun.combust_start = sun_longitude - 8.5 < sun_sign_start ? sun_sign_start : sun_longitude - 8.5
       res.Sun.combust_end = sun_longitude + 8.5 > sun_sign_end ? sun_sign_end : sun_longitude + 8.5
       res.Sun.sunbeam_start = (sun_longitude - 17 + 360) % 360
@@ -401,13 +590,44 @@ export default{
 
       //夜か昼か
       const is_night = (ASC - sun_longitude + 360) % 360 > 180
+      //時
+      const is_AM = this.pl.sd.hour + this.pl.timezone < 12
+      //アワールーラー
+      let weekday_num = this.pl.sd.getDayOfWeekNr()
+      weekday_num = this.pl.sd.hour < 0 ? this.pl.sd.hour >= 24 ? weekday_num + 1 : weekday_num - 1 : weekday_num
+      //午前かつ太陽が夜は、前の曜日
+      const weekday_num_adjusted = is_night && is_AM ? (weekday_num + 6) % 7 : weekday_num
+      const weekday_p = define.WEEK_ORDER[weekday_num_adjusted]
+      let hour_num = 1//n時間目
+      for(let i=12; i>=1; i--){
+        const house_end = this.pl.houses[i]
+        const house_start = i === 13 ? this.pl.houses[1] : this.pl.houses[i+1]
+        const house_mid = house_start < house_end ? (house_start + house_end + 360) / 2 : (house_start + house_end) / 2
+        if(sun_longitude < house_start && sun_longitude >= house_mid ||
+           house_start < house_mid && sun_longitude < house_start ||
+           house_start < house_mid && sun_longitude >= house_mid){
+          hour_num = (12 - i) * 2 + 1
+        }
+        else if(sun_longitude < house_mid && sun_longitude >= house_end ||
+           house_mid < house_end && sun_longitude < house_mid ||
+           house_mid < house_end && sun_longitude >= house_end){
+          hour_num = (12 - i) * 2 + 2
+        }
+      }
+      const hour_ruler_num = (planet_list[weekday_p].chaldean_order + hour_num - 2) % 7
+      res.hour_ruler = define.CHALDEAN_ORDER[hour_ruler_num]
+      res.hour_num = hour_num
 
       //ハウスのルーラ
-      res.house_rulers = Array(13)
-      res.house_cusps = Array(13)
+      res.house = Array(13)
       for(let i=0; i<12; i++){
-        res.house_rulers[i+1] = sign_list[((ASC/30).int() + i) % 12].ruler
-        res.house_cusps[i+1] = ((ASC/30).int() + i) * 30 % 360
+        const cusp = ((ASC/30).int() + i) * 30 % 360
+
+        res.house[i+1] = {}
+        res.house[i+1].ruler = sign_list[((ASC/30).int() + i) % 12].ruler
+        res.house[i+1].cusp = cusp
+        res.house[i+1].sign = sign_list[(cusp/30).int()]
+        res.house[i+1].planets = []
       }
       
       //エッセンシャルディグニティ
@@ -483,8 +703,8 @@ export default{
         res[p1].aspect = {}
 
         essential_planets.forEach((p2)=>{
-          const light_p = planet_list[p1].chaldean_order < planet_list[p2].chaldean_order ? p1 : p2
-          const heavy_p = planet_list[p1].chaldean_order > planet_list[p2].chaldean_order ? p1 : p2
+          const light_p = planet_list[p1].chaldean_order > planet_list[p2].chaldean_order ? p1 : p2
+          const heavy_p = planet_list[p1].chaldean_order < planet_list[p2].chaldean_order ? p1 : p2
           const light_lon = pl[light_p].longitude
           const heavy_lon = pl[heavy_p].longitude
           const light_sign = (light_lon/30).int()
@@ -550,33 +770,46 @@ export default{
         })
       })
 
-      //月のサイクルとのアスペクト
-      res.Moon.cycle = []
-      const moon_longitude = pl.Moon.longitude
-      const moon_sign = (moon_longitude / 30).int()
-      essential_planets.forEach((p)=>{
-        const p_sign = (pl[p].longitude / 30).int()
-        let moon_aspect = null
-        if(moon_sign === p_sign) moon_aspect = 'Conjunction'
-        else if((moon_sign - p_sign).abs() === 2) moon_aspect = 'Sextile'
-        else if((moon_sign - p_sign).abs() === 3) moon_aspect = 'Square'
-        else if((moon_sign - p_sign).abs() === 4) moon_aspect = 'Trine'
-        else if((moon_sign - p_sign).abs() === 6) moon_aspect = 'Opposition'
+      //惑星のサイクルとのアスペクト
+      define.CHALDEAN_ORDER.forEach(_p=>{
+        if(_p !== 'Moon') return
 
-        res.Moon.cycle.push({
-          p: p,
-          degree: pl[p].longitude % 30,
-          moon_aspect: moon_aspect,
+        res[_p].cycle = []
+        const target_longitude = pl[_p].longitude
+        const target_sign = (target_longitude / 30).int()
+
+        essential_planets.forEach((p)=>{
+          const p_sign = (pl[p].longitude / 30).int()
+          let target_aspect = null
+          const sign_diff = (target_sign - p_sign + 12) % 12
+          const sign_diff_short = sign_diff > 6 ? 12 - sign_diff : sign_diff
+
+          if(sign_diff_short === 0) target_aspect = 'Conjunction'
+          else if(sign_diff_short === 2) target_aspect = 'Sextile'
+          else if(sign_diff_short === 3) target_aspect = 'Square'
+          else if(sign_diff_short === 4) target_aspect = 'Trine'
+          else if(sign_diff_short === 6) target_aspect = 'Opposition'
+
+          res[_p].cycle.push({
+            p: p,
+            degree: pl[p].longitude % 30,
+            target_aspect: target_aspect,
+          })
         })
-      })
-      res.Moon.cycle.sort(function(a,b){
+        res[_p].cycle.sort(function(a,b){
           if(a.degree <= b.degree) return -1
           if(a.degree > b.degree) return 1
+        })
+        res[_p].void = true
+        let after_target_planet = false
+        res[_p].cycle.forEach(v=>{
+          if(after_target_planet && v.target_aspect && define.CHALDEAN_ORDER.indexOf(v.p) >= 0) res[_p].void = false
+          if(v.p === _p) after_target_planet = true
+        })
       })
 
-
       //その他
-      essential_planets.forEach((p)=>{
+      essential_planets.forEach(p=>{
         const longitude = pl[p].longitude
 
         //オリエンタル・オクシデンタル
@@ -611,25 +844,21 @@ export default{
           partile_SouthNode: longitude.int() === (pl.TrueNode.longitude + 180).int() % 360,
         }
 
-
         //ハウス
         for(let i=1; i<=12; i++){
           const ii = i == 12 ? 1 : i+1
-          const n1 = res.house_cusps[i]
-          const n2 = res.house_cusps[ii]
+          const n1 = res.house[i].cusp
+          const n2 = res.house[ii].cusp
           if(longitude >= n1 && longitude < n2 ||
              n1 > n2 && longitude >= n1 ||
              n1 > n2 && longitude < n2){
             res[p].house = i
+            res.house[i].planets.push(p)
           }
         }
-        
       })
 
-
       //プロヒビション
-
-
 console.log(res, is_night)
       return res
     },

@@ -11,30 +11,27 @@
 </template>
 
 <script>
-import Mixin from '@/components/Common'
-
 export default {
-  mixins:[Mixin],
-  props: {
-  },
-  components: {
-  },
-  data () {
-    return {
-    }
-  },
-
+  props: ['input'],
   created() {
+    this.horo()
   },
-  mounted(){
+  watch:{
+    input: function(){
+      this.horo()
+    },
   },
-
   methods:{
-
+    horo(){
+      const who = this.input && this.input.who.int() ? this.input.who.int() : 1
+      const significator_house = (who) % 12 + 1
+console.log(significator_house)
+      this.$emit('horo', {
+        significator:{
+          house: significator_house,
+        },
+      })
+    },
   }
 }
 </script>
-
-<style>
-
-</style>

@@ -1,11 +1,11 @@
 <template>
   <div>
     <section class="narrow pure-form">
-      <router-view name="title"></router-view>
+      <router-view name="input" @horo="get_horo_info" :input="input"></router-view>
 
       <div>
         <h2>2. 誰のなくしものですか？</h2>
-        <select>
+        <select id="who" @change="change_input">
           <option value="1" selected>自分</option>
           <option value="7">配偶者・恋人</option>
           <option value="4">父</option>
@@ -56,53 +56,53 @@
         <label class="pure-checkbox">
           <input type="radio" name="where_type" id="where_pref" checked> 
           <select>
-            <option value="1" data-lat="43.06417" data-lon="141.34694">北海道 札幌市</option>
-            <option value="2" data-lat="40.82444" data-lon="140.74">青森県 青森市</option>
-            <option value="3" data-lat="39.70361" data-lon="141.1525">岩手県 盛岡市</option>
-            <option value="4" data-lat="38.26889" data-lon="140.87194">宮城県 仙台市</option>
-            <option value="5" data-lat="39.71861" data-lon="140.1025">秋田県 秋田市</option>
-            <option value="6" data-lat="38.24056" data-lon="140.36333">山形県 山形市</option>
-            <option value="7" data-lat="37.75" data-lon="140.46778">福島県 福島市</option>
-            <option value="8" data-lat="36.34139" data-lon="140.44667">茨城県 水戸市</option>
-            <option value="9" data-lat="36.56583" data-lon="139.88361">栃木県 宇都宮市</option>
-            <option value="10" data-lat="36.39111" data-lon="139.06083">群馬県 前橋市</option>
-            <option value="11" data-lat="35.85694" data-lon="139.64889">埼玉県 さいたま市</option>
-            <option value="12" data-lat="35.60472" data-lon="140.12333">千葉県 千葉市</option>
-            <option value="13" data-lat="35.67698" data-lon="139.75884" selected>東京都 23区</option>
-            <option value="14" data-lat="35.44778" data-lon="139.6425">神奈川県 横浜市</option>
-            <option value="15" data-lat="37.90222" data-lon="139.02361">新潟県 新潟市</option>
-            <option value="16" data-lat="36.69528" data-lon="137.21139">富山県 富山市</option>
-            <option value="17" data-lat="36.59444" data-lon="136.62556">石川県 金沢市</option>
-            <option value="18" data-lat="36.06528" data-lon="136.22194">福井県 福井市</option>
-            <option value="19" data-lat="35.66389" data-lon="138.56833">山梨県 甲府市</option>
-            <option value="20" data-lat="36.65139" data-lon="138.18111">長野県 長野市</option>
-            <option value="21" data-lat="35.39111" data-lon="136.72222">岐阜県 岐阜市</option>
-            <option value="22" data-lat="34.97694" data-lon="138.38306">静岡県 静岡市</option>
-            <option value="23" data-lat="35.18028" data-lon="136.90667">愛知県 名古屋市</option>
-            <option value="24" data-lat="34.73028" data-lon="136.50861">三重県 津市</option>
-            <option value="25" data-lat="35.00444" data-lon="135.86833">滋賀県 大津市</option>
-            <option value="26" data-lat="35.02139" data-lon="135.75556">京都府 京都市</option>
-            <option value="27" data-lat="34.68639" data-lon="135.52">大阪府 大阪市</option>
-            <option value="28" data-lat="34.69139" data-lon="135.18306">兵庫県 神戸市</option>
-            <option value="29" data-lat="34.68528" data-lon="135.83278">奈良県 奈良市</option>
-            <option value="30" data-lat="34.22611" data-lon="135.1675">和歌山県 和歌山市</option>
-            <option value="31" data-lat="35.50361" data-lon="134.23833">鳥取県 鳥取市</option>
-            <option value="32" data-lat="35.47222" data-lon="133.05056">島根県 松江市</option>
-            <option value="33" data-lat="34.66167" data-lon="133.935">岡山県 岡山市</option>
-            <option value="34" data-lat="34.39639" data-lon="132.45944">広島県 広島市</option>
-            <option value="35" data-lat="34.18583" data-lon="131.47139">山口県 山口市</option>
-            <option value="36" data-lat="34.06583" data-lon="134.55944">徳島県 徳島市</option>
-            <option value="37" data-lat="34.34028" data-lon="134.04333">香川県 高松市</option>
-            <option value="38" data-lat="33.84167" data-lon="132.76611">愛媛県 松山市</option>
-            <option value="39" data-lat="33.55972" data-lon="133.53111">高知県 高知市</option>
-            <option value="40" data-lat="33.60639" data-lon="130.41806">福岡県 福岡市</option>
-            <option value="41" data-lat="33.24944" data-lon="130.29889">佐賀県 佐賀市</option>
-            <option value="42" data-lat="32.74472" data-lon="129.87361">長崎県 長崎市</option>
-            <option value="43" data-lat="32.78972" data-lon="130.74167">熊本県 熊本市</option>
-            <option value="44" data-lat="33.23806" data-lon="131.6125">大分県 大分市</option>
-            <option value="45" data-lat="31.91111" data-lon="131.42389">宮崎県 宮崎市</option>
-            <option value="46" data-lat="31.56028" data-lon="130.55806">鹿児島県 鹿児島市</option>
-            <option value="47" data-lat="26.2125" data-lon="127.68111">沖縄県 那覇市</option>
+            <option value="1" data-lat="43.06417" data-lon="141.34694">北海道</option>
+            <option value="2" data-lat="40.82444" data-lon="140.74">青森県</option>
+            <option value="3" data-lat="39.70361" data-lon="141.1525">岩手県</option>
+            <option value="4" data-lat="38.26889" data-lon="140.87194">宮城県</option>
+            <option value="5" data-lat="39.71861" data-lon="140.1025">秋田県</option>
+            <option value="6" data-lat="38.24056" data-lon="140.36333">山形県</option>
+            <option value="7" data-lat="37.75" data-lon="140.46778">福島県</option>
+            <option value="8" data-lat="36.34139" data-lon="140.44667">茨城県</option>
+            <option value="9" data-lat="36.56583" data-lon="139.88361">栃木県</option>
+            <option value="10" data-lat="36.39111" data-lon="139.06083">群馬県</option>
+            <option value="11" data-lat="35.85694" data-lon="139.64889">埼玉県</option>
+            <option value="12" data-lat="35.60472" data-lon="140.12333">千葉県</option>
+            <option value="13" data-lat="35.67698" data-lon="139.75884" selected>東京都</option>
+            <option value="14" data-lat="35.44778" data-lon="139.6425">神奈川県</option>
+            <option value="15" data-lat="37.90222" data-lon="139.02361">新潟県</option>
+            <option value="16" data-lat="36.69528" data-lon="137.21139">富山県</option>
+            <option value="17" data-lat="36.59444" data-lon="136.62556">石川県</option>
+            <option value="18" data-lat="36.06528" data-lon="136.22194">福井県</option>
+            <option value="19" data-lat="35.66389" data-lon="138.56833">山梨県</option>
+            <option value="20" data-lat="36.65139" data-lon="138.18111">長野県</option>
+            <option value="21" data-lat="35.39111" data-lon="136.72222">岐阜県</option>
+            <option value="22" data-lat="34.97694" data-lon="138.38306">静岡県</option>
+            <option value="23" data-lat="35.18028" data-lon="136.90667">愛知県</option>
+            <option value="24" data-lat="34.73028" data-lon="136.50861">三重県</option>
+            <option value="25" data-lat="35.00444" data-lon="135.86833">滋賀県</option>
+            <option value="26" data-lat="35.02139" data-lon="135.75556">京都府</option>
+            <option value="27" data-lat="34.68639" data-lon="135.52">大阪府</option>
+            <option value="28" data-lat="34.69139" data-lon="135.18306">兵庫県</option>
+            <option value="29" data-lat="34.68528" data-lon="135.83278">奈良県</option>
+            <option value="30" data-lat="34.22611" data-lon="135.1675">和歌山県</option>
+            <option value="31" data-lat="35.50361" data-lon="134.23833">鳥取県</option>
+            <option value="32" data-lat="35.47222" data-lon="133.05056">島根県</option>
+            <option value="33" data-lat="34.66167" data-lon="133.935">岡山県</option>
+            <option value="34" data-lat="34.39639" data-lon="132.45944">広島県</option>
+            <option value="35" data-lat="34.18583" data-lon="131.47139">山口県</option>
+            <option value="36" data-lat="34.06583" data-lon="134.55944">徳島県</option>
+            <option value="37" data-lat="34.34028" data-lon="134.04333">香川県</option>
+            <option value="38" data-lat="33.84167" data-lon="132.76611">愛媛県</option>
+            <option value="39" data-lat="33.55972" data-lon="133.53111">高知県</option>
+            <option value="40" data-lat="33.60639" data-lon="130.41806">福岡県</option>
+            <option value="41" data-lat="33.24944" data-lon="130.29889">佐賀県</option>
+            <option value="42" data-lat="32.74472" data-lon="129.87361">長崎県</option>
+            <option value="43" data-lat="32.78972" data-lon="130.74167">熊本県</option>
+            <option value="44" data-lat="33.23806" data-lon="131.6125">大分県</option>
+            <option value="45" data-lat="31.91111" data-lon="131.42389">宮崎県</option>
+            <option value="46" data-lat="31.56028" data-lon="130.55806">鹿児島県</option>
+            <option value="47" data-lat="26.2125" data-lon="127.68111">沖縄県</option>
           </select>
         </label>
 
@@ -150,30 +150,53 @@
         <canvas id="horo" width="600" height="600"></canvas>
       </div>
 
-
-
       <div>
-        ホロスコープ有効度（ラディカル度）
+        <h2>占いの有効度（ラディカル度）</h2>
+        <p>★★☆</p>
+        <p>有効なチャート</p>
+5
+とても真剣に鑑定に取り組んでいることがチャートに表れています。鑑定結果を読み進めてください。
+
+4 
+アワールーラなし　
+月ボイド蟹座など
+有効なチャートです。鑑定結果を読み進めてください。
+
+早いASC　アワールーラ
+まだ質問を熟考していないと暗示されていますが、状況がチャートに反映されているので鑑定結果を読み進めてください。結果を参考にして質問についてよく考えると良いでしょう。
+
+早いASC　
+まだ質問を熟考していないことが暗示されています。占いの前に行動したり考えたりなどできることがあったかもしれません。明日以降にもう一度占うのが良いでしょう。
+
+少し遅いASC アワールーラ
+手遅れになりつつあると暗示されています。まだ間に合うかもしれないので鑑定結果を読み進めて参考にしてください。
+
+遅いASC
+既に結果が判明しているか、手遅れになりつつあるとチャートに示されています。鑑定結果を読み進めても役に立たないかもしれません。状況に変化が訪れた後にもう一度占うのが良いでしょう。
+
+ボイド
+状況が変わらないことが暗示されています。もしくは心がとある考えにとらわれて視野が狭くなっている状態でしょう。明日以降に再度占い直すことをオススメします。
+
         アセンダントの度数
         アワールーラーとASCの
         月がボイド
       </div>
 
+      <router-view name="result" :r="result"></router-view>
 
       <div>
-        アワールーラー
+        
       </div>
-
 
     </section>
 
-    <router-view name="result"></router-view>
+    
   </div>
 </template>
 
 <script>
 import Mixin from '@/components/Common'
-import define from '@/assets/js/define'
+//import define from '@/assets/js/define'
 
 export default {
   name: 'Predict',
@@ -184,6 +207,10 @@ export default {
   },
   data () {
     return {
+      result: this.result,
+      horo: this.horo,
+      horo_info: this.horo_info,
+      input: this.input,
     }
   },
 
@@ -192,20 +219,29 @@ export default {
 
   },
   mounted(){
-    this.pl.setCurrentDate()
+    //this.pl.setCurrentDate()
+    this.pl.setDate(2021, 5, 16, 15, 10, 0, 9)
     this.pl.getPlanets()
     this.pl.setGeoPosition(45, 135)
     this.houses = this.pl.getHouses()
 
-    const v={
+    this.result = {
       pl: this.pl,
       planets: this.get_adjusted_planets(),
       c: this.getConditions(),
+      opt: this.get_options(),
+      horo_info: this.horo_info,
     }
-    this.draw_horoscope(v)
+    this.drawHoroscope(this.result)
   },
 
   methods:{
+    change_input(){
+      this.input = {
+        who: this.$$('#who').value,
+      }
+    },
+
     get_adjusted_planets(){
       const planets = []
       for(var k in this.pl.planets){
@@ -276,173 +312,12 @@ export default {
       return planets
     },
 
-    draw_horoscope(v){
-      const canvas = this.$$('#horo')
-      const ctx = canvas.getContext('2d')
-      const circle_radius = 220
-      const outer_circle_radius = 250
-      const planet_radius = 185
-      const house_radius = 40
-      const color_dark = '#a7a5bd'
-      const planets = define.PLANET_LIST
+    get_horo_info(v){
+      this.horo_info = v
+    },
 
-      console.log(v, define.SIGN_LIST)
+    get_options(){
 
-      const ASC = v.pl.houses[1]
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-
-      //原点調整
-      ctx.translate(300, 300)
-
-      //背景
-      ctx.fillStyle = '#fff'
-      ctx.beginPath()
-      ctx.arc(0, 0, outer_circle_radius, 0, 7, false)
-      ctx.fill()
-
-      //ハウスとサイン
-      ctx.strokeStyle = color_dark
-      ctx.lineWidth = outer_circle_radius - circle_radius
-      ctx.fillStyle = '#aaa'//文字の色
-      for(let i=0; i<12; i++){
-        //ハウス番号
-        const house_rad = Math.PI * (180 + (ASC%30) - (i+0.5)*30) / 180
-        const house_x = Math.cos(house_rad)
-        const house_y = Math.sin(house_rad)
-        ctx.fillText((i+1), house_x * house_radius, house_y * house_radius)
-
-        //星座の背景
-        const start = Math.PI * (180 + (ASC%30) - i*30) / 180
-        const end = Math.PI * (180 + (ASC%30) -(i+1)*30) / 180
-        ctx.beginPath()
-        ctx.arc(0, 0, outer_circle_radius - 15, start, end, true)
-        ctx.stroke()
-
-        //星座アイコン
-        const sign_rad = Math.PI * (180 + ASC - (i+0.5)*30) / 180
-        const sign_x = Math.cos(sign_rad)
-        const sign_y = Math.sin(sign_rad)
-        const sign = new Image()
-        sign.src = '/img/sign/'+define.SIGN_LIST[i].key+'.svg'
-        sign.onload = () => {
-          ctx.drawImage(sign, sign_x*circle_radius*1.06-10, sign_y*circle_radius*1.06-10, 20, 20)
-        }
-      }
-
-
-      // //サンビーム
-      // ctx.strokeStyle = '#fffbb5'
-      // let convast_start= Math.PI * (180 + ASC - (sun_lon - 8.5)) / 180
-      // let convast_end = Math.PI * (180 + ASC - (sun_lon + 8.5)) / 180
-      // ctx.arc(0, 0, circle_radius - 5, sunbeam_start, sunbeam_end, true)
-      // ctx.stroke()
-      // //コンバスト
-      // ctx.beginPath()
-      // ctx.lineWidth = 10
-      // const sun_lon = v.pl.planets.Sun.longitude
-      // const convast_start = Math.PI * (180 + ASC - (sun_lon - 17)) / 180
-      // const convast_end = Math.PI * (180 + ASC - (sun_lon + 17)) / 180
-      // ctx.arc(0, 0, circle_radius - 5, convast_start, convast_end, true)
-
-
-      //目盛
-      ctx.strokeStyle = '#c9c9c9'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.arc(0, 0, outer_circle_radius, 0, Math.PI * 2, true)
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.arc(0, 0, circle_radius, 0, Math.PI * 2, true)
-      ctx.stroke()
-      for(let i=0; i<360; i++){
-        const x = Math.cos(Math.PI * (ASC + i) / 180)
-        const y = Math.sin(Math.PI * (ASC + i) / 180)
-        const ratio = i % 30 ? (i % 5 ? 0.96 : 0.92) : -1.14
-        ctx.beginPath()
-        ctx.moveTo(x*circle_radius, y*circle_radius)
-        ctx.lineTo(x*circle_radius*ratio, y*circle_radius*ratio)
-        ctx.stroke()
-      }
-      
-      //惑星
-      ctx.strokeStyle = '#bbb'
-      ctx.lineWidth = 1
-      v.planets.forEach((planet)=>{
-        const p = planets[planet.key]
-        const text = p.text
-        const r = p.ratio ? p.ratio : 1
-        const bold = p.bold ? 'bold' : ''
-        const rad = Math.PI * (180 - planet.longitude + ASC) / 180
-        const x = Math.cos(rad) * planet_radius
-        const y = Math.sin(rad) * planet_radius
-        const p_rad = Math.PI * (180 - planet.icon_degree + ASC) / 180
-        const p_x = Math.cos(p_rad) * planet_radius
-        const p_y = Math.sin(p_rad) * planet_radius
-        
-        ctx.font = parseInt(40 * r) + 'px ' + bold + ' sans-serif'
-        ctx.fillText(text, p_x*0.87, p_y*0.87)
-        ctx.font = '10px sans-serif'
-        ctx.fillText((planet.longitude%30).int().zeroPadding(2), p_x, p_y)
-
-        ctx.beginPath()
-        ctx.strokeStyle = color_dark
-        ctx.moveTo(p_x*1.05, p_y*1.05)
-        ctx.lineTo(x*circle_radius/planet_radius, y*circle_radius/planet_radius)
-        ctx.stroke()
-
-        //スピード
-        if(p.speed){
-          let speed_flg = 1
-          if(planet.longitudeSpeed < 0) speed_flg = -1
-          else if(planet.longitudeSpeed > p.speed) speed_flg = 2
-
-          draw_triangle(speed_flg, p_rad)
-        }
-        else if(planet.key === 'Sun' || planet.key === 'Moon'){
-          draw_triangle(1, p_rad)
-        }
-      })
-
-      
-      
-
-      //スピードの矢印
-      function draw_triangle(speed_flg, p_rad){
-        let arrow_start, arrow_end
-        switch(speed_flg){
-          case 1:
-            arrow_start = -0.05
-            arrow_end = -0.03
-            break
-          case -1:
-            arrow_start = 0.05
-            arrow_end = 0.03
-            break
-          case 2:
-            arrow_start = -0.05
-            arrow_end = -0.025
-            break
-        }
-
-        for(let i=0; i<Math.abs(speed_flg); i++){
-          const speed_rad = p_rad + arrow_start
-          const speed_x1 = Math.cos(speed_rad+arrow_end) * planet_radius * 1.0
-          const speed_x2 = Math.cos(speed_rad) * planet_radius * 1.02
-          const speed_x3 = Math.cos(speed_rad) * planet_radius * 0.98
-          const speed_y1 = Math.sin(speed_rad+arrow_end) * planet_radius * 1.0
-          const speed_y2 = Math.sin(speed_rad) * planet_radius * 1.02
-          const speed_y3 = Math.sin(speed_rad) * planet_radius * 0.98
-          ctx.beginPath()
-          ctx.moveTo(speed_x1, speed_y1)
-          ctx.lineTo(speed_x2, speed_y2)
-          ctx.lineTo(speed_x3, speed_y3)
-          ctx.fill()
-
-          arrow_start += arrow_end
-        }
-      }
     },
 
     get_result(){
@@ -467,10 +342,8 @@ console.log(this.$$('#when_now'))
 
       console.log(this.pl)
 
-      this.draw_horoscope()
+      this.drawHoroscope()
     },
-
-
   }
 }
 </script>
@@ -543,7 +416,7 @@ button.predict{
 
 button.predict:hover{
     color: #fff;
-    background: #fdffe2;
+    background: #f4dd66;
     border: solid 5px #fff;
     animation: shine 3s linear;
     -webkit-animation: shine 3s linear;
@@ -555,11 +428,8 @@ button.predict:hover{
   40% {
     background: #b9c157;
   }
-  80%{
-    background: #dfe4a8;
-  }
   100%{
-    background: #fdffe2;
+    background: #f4dd66
   }
 }
 @-webkit-keyframes shine{
@@ -569,11 +439,8 @@ button.predict:hover{
   40% {
     background: #b9c157;
   }
-  80%{
-    background: #dfe4a8;
-  }
   100%{
-    background: #fdffe2;
+    background: #f4dd66;
   }
 }
 
