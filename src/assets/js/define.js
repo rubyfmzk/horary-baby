@@ -10,14 +10,14 @@ const define = {
       ratio: 1.4,
       orb: 17,
       chaldean_order: 4,
-      elemen: 'Fire',
+      element: 'Fire',
     },
     Moon:{
       text: '☽',
       ratio: 1,
       orb: 12.5,
       chaldean_order: 7,
-      elemen: 'Water',
+      element: 'Water',
     },
     Mercury:{
       text: '☿',
@@ -25,7 +25,7 @@ const define = {
       speed: 0.985555,
       orb: 7,
       chaldean_order: 6,
-      elemen: 'Earth',
+      element: 'Earth',
     },
     Venus:{
       text: '♀',
@@ -34,7 +34,7 @@ const define = {
       speed: 0.985555,
       orb: 8,
       chaldean_order: 5,
-      elemen: 'Water',
+      element: 'Water',
     },
     Mars:{
       text: '♂',
@@ -43,7 +43,7 @@ const define = {
       speed: 0.524166,
       orb: 7.5,
       chaldean_order: 3,
-      elemen: 'Fire',
+      element: 'Fire',
     },
     Jupiter:{
       text: '♃',
@@ -51,7 +51,7 @@ const define = {
       speed: 0.083055,
       orb: 12,
       chaldean_order: 2,
-      elemen: 'Air',
+      element: 'Air',
     },
     Saturn:{
       text: '♄',
@@ -59,7 +59,7 @@ const define = {
       speed: 0.033611,
       orb: 10,
       chaldean_order: 1,
-      elemen: 'Earth',
+      element: 'Earth',
     },
     Uranus:{
       text: '♅',
@@ -68,7 +68,7 @@ const define = {
     },
     Neptune:{
       text: '♆',
-      ratio: 0.75,
+      ratio: 0.7,
       speed: 0.005973,
     },
     Pluto:{
@@ -124,7 +124,7 @@ const define = {
       face: ['Mars', 'Sun', 'Venus'],
       detriment: 'Venus',
       fall: 'Saturn',
-      elemen: 'Fire',
+      element: 'Fire',
     },
     {
       key: 'Taurus',
@@ -142,7 +142,7 @@ const define = {
       face: ['Mercury', 'Moon', 'Saturn'],
       detriment: 'Mars',
       fall: null,
-      elemen: 'Earth',
+      element: 'Earth',
     },
     {
       key: 'Gemini',
@@ -160,7 +160,7 @@ const define = {
       face: ['Jupiter', 'Mars', 'Sun'],
       detriment: 'Jupiter',
       fall: null,
-      elemen: 'Air',
+      element: 'Air',
     },
     {
       key: 'Cancer',
@@ -178,7 +178,7 @@ const define = {
       face: ['Venus', 'Mercury', 'Moon'],
       detriment: 'Saturn',
       fall: 'Mars',
-      elemen: 'Water',
+      element: 'Water',
     },
     {
       key: 'Leo',
@@ -196,7 +196,7 @@ const define = {
       face: ['Saturn', 'Jupiter', 'Mars'],
       detriment: 'Saturn',
       fall: null,
-      elemen: 'Fire',
+      element: 'Fire',
     },
     {
       key: 'Virgo',
@@ -214,7 +214,7 @@ const define = {
       face: ['Sun', 'Venus', 'Mercury'],
       detriment: 'Jupiter',
       fall: 'Venus',
-      elemen: 'Earth',
+      element: 'Earth',
     },
     {
       key: 'Libra',
@@ -232,7 +232,7 @@ const define = {
       face: ['Moon', 'Saturn', 'Jupiter'],
       detriment: 'Mars',
       fall: 'Sun',
-      elemen: 'Air',
+      element: 'Air',
     },
     {
       key: 'Scorpio',
@@ -250,7 +250,7 @@ const define = {
       face: ['Mars', 'Sun', 'Venus'],
       detriment: 'Venus',
       fall: 'Moon',
-      elemen: 'Water',
+      element: 'Water',
     },
     {
       key: 'Sagittarius',
@@ -268,7 +268,7 @@ const define = {
       face: ['Mercury', 'Moon', 'Saturn'],
       detriment: 'Mercury',
       fall: null,
-      elemen: 'Fire',
+      element: 'Fire',
     },
     {
       key: 'Capricorn',
@@ -286,7 +286,7 @@ const define = {
       face: ['Jupiter', 'Mars', 'Sun'],
       detriment: 'Moon',
       fall: 'Jupiter',
-      elemen: 'Earth',
+      element: 'Earth',
     },
     {
       key: 'Aquarius',
@@ -304,7 +304,7 @@ const define = {
       face: ['Venus', 'Mercury', 'Moon'],
       detriment: 'Sun',
       fall: null,
-      elemen: 'Air',
+      element: 'Air',
     },
     {
       key: 'Pisces',
@@ -322,7 +322,7 @@ const define = {
       face: ['Saturn', 'Jupiter', 'Mars'],
       detriment: 'Mercury',
       fall: 'Mercury',
-      elemen: 'Water',
+      element: 'Water',
     },
   ],
   cookie:{

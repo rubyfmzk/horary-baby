@@ -368,12 +368,15 @@ console.log(r, define.SIGN_LIST)
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
 
-      if(r.horo_info && r.horo_info.significator){
-        const color = '#e08e14'
-        const house = r.horo_info.significator.house
-        const planet = r.c.house[house.int()].ruler
-        color_change.house[house] = color
-        color_change.planet[planet] = color
+      if(r.input_child && r.input_child.horo && r.input_child.horo){
+        const horo = r.input_child.horo
+        if(horo.significator){
+          const color = '#e08e14'
+          const house = horo.significator.house
+          const planet = r.c.house[house.int()].ruler
+          color_change.house[house] = color
+          color_change.planet[planet] = color
+        }
       }
 
       //原点調整
@@ -590,6 +593,7 @@ console.log(r, define.SIGN_LIST)
 
       //夜か昼か
       const is_night = (ASC - sun_longitude + 360) % 360 > 180
+      res.is_night = is_night
       //時
       const is_AM = this.pl.sd.hour + this.pl.timezone < 12
       //アワールーラー
@@ -637,6 +641,10 @@ console.log(r, define.SIGN_LIST)
         const degree = longitude % 30
         const sign_info = sign_list[sign_num]
         const which_tripricity = is_night ? 'night_triplicity' : 'day_triplicity'
+
+        //普通に度数
+        res[p].sign = pl[p]
+        res[p].sign_info = sign_info
 
         res[p].dignity = {}
         res[p].dignity.domicile = {

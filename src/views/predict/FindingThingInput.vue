@@ -25,11 +25,14 @@ export default {
     horo(){
       const who = this.input && this.input.who.int() ? this.input.who.int() : 1
       const significator_house = (who) % 12 + 1
-console.log(significator_house)
-      this.$emit('horo', {
-        significator:{
-          house: significator_house,
+//console.log(significator_house)
+      this.$emit('input_child', {
+        horo:{
+          significator:{
+            house: significator_house,
+          },
         },
+        who_title: '誰のなくしものですか？'
       })
     },
   }

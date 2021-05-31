@@ -1,7 +1,7 @@
 <template>
   <div>
     <section class="narrow pure-form">
-      <router-view name="input" @horo="get_horo_info" :input="input"></router-view>
+      <router-view name="input" @input_child="get_input_child" :input="input"></router-view>
 
       <div>
         <h2>2. 誰のなくしものですか？</h2>
@@ -138,11 +138,11 @@
           <input type="radio" name="when_type" id="when_input">
         </label>
       </div>
-
+<!--
       <div>
         <h2>5. 質問内容を記入できます。（書かなくてもOK）</h2>
-        <input type="text" class="pure-input-1" placeholder="後から振り返る時に便利です">
-      </div>
+        <input type="text" class="pure-input-1" placeholder="記入すると、考えをまとめたり、後から振り返る時に便利です。">
+      </div>-->
 
       <div class="center">
         <button class="predict" @click="get_result">教えてください<br>お星さま</button>
@@ -151,35 +151,12 @@
       </div>
 
       <div>
-        <h2>占いの有効度（ラディカル度）</h2>
-        <p>★★☆</p>
-        <p>有効なチャート</p>
-5
-とても真剣に鑑定に取り組んでいることがチャートに表れています。鑑定結果を読み進めてください。
-
-4 
-アワールーラなし　
-月ボイド蟹座など
-有効なチャートです。鑑定結果を読み進めてください。
-
-早いASC　アワールーラ
-まだ質問を熟考していないと暗示されていますが、状況がチャートに反映されているので鑑定結果を読み進めてください。結果を参考にして質問についてよく考えると良いでしょう。
-
-早いASC　
-まだ質問を熟考していないことが暗示されています。占いの前に行動したり考えたりなどできることがあったかもしれません。明日以降にもう一度占うのが良いでしょう。
-
-少し遅いASC アワールーラ
-手遅れになりつつあると暗示されています。まだ間に合うかもしれないので鑑定結果を読み進めて参考にしてください。
-
-遅いASC
-既に結果が判明しているか、手遅れになりつつあるとチャートに示されています。鑑定結果を読み進めても役に立たないかもしれません。状況に変化が訪れた後にもう一度占うのが良いでしょう。
-
-ボイド
-状況が変わらないことが暗示されています。もしくは心がとある考えにとらわれて視野が狭くなっている状態でしょう。明日以降に再度占い直すことをオススメします。
-
-        アセンダントの度数
-        アワールーラーとASCの
-        月がボイド
+        <h2>鑑定の有効度（ラディカル度）</h2>
+        <p>
+          <span class="star_radical" v-for="n in radical.score" :key="n">★</span>
+          <span class="star_not_radical" v-for="n in 5 - radical.score" :key="n">☆</span>
+        </p>
+        <p>{{radical.message}}</p>
       </div>
 
       <router-view name="result" :r="result"></router-view>
@@ -196,7 +173,7 @@
 
 <script>
 import Mixin from '@/components/Common'
-//import define from '@/assets/js/define'
+import define from '@/assets/js/define'
 
 export default {
   name: 'Predict',
@@ -209,18 +186,22 @@ export default {
     return {
       result: this.result,
       horo: this.horo,
-      horo_info: this.horo_info,
+      input_child: this.input_child,
       input: this.input,
+      radical: this.radical,
     }
   },
 
   created() {
     this.pl = new window.Pluto()
-
+    this.radical = {
+      score: 0,
+      message: '',
+    }
   },
   mounted(){
     //this.pl.setCurrentDate()
-    this.pl.setDate(2021, 5, 16, 15, 10, 0, 9)
+    this.pl.setDate(2021, 5, 16, 150, 10, 0, 9)
     this.pl.getPlanets()
     this.pl.setGeoPosition(45, 135)
     this.houses = this.pl.getHouses()
@@ -230,9 +211,10 @@ export default {
       planets: this.get_adjusted_planets(),
       c: this.getConditions(),
       opt: this.get_options(),
-      horo_info: this.horo_info,
+      input_child: this.input_child,
     }
     this.drawHoroscope(this.result)
+    this.show_radical(this.result)
   },
 
   methods:{
@@ -312,8 +294,8 @@ export default {
       return planets
     },
 
-    get_horo_info(v){
-      this.horo_info = v
+    get_input_child(v){
+      this.input_child = v
     },
 
     get_options(){
@@ -343,6 +325,75 @@ console.log(this.$$('#when_now'))
       console.log(this.pl)
 
       this.drawHoroscope()
+
+      this.show_radical()
+    },
+
+    show_radical(r){
+      const not_so_void_signs = ['Taurus', 'Cancer', 'Sagittarius', 'Pisces']
+      const hour_ruler = r.c.hour_ruler
+      const moon_is_void = r.c.Moon.void
+      const moon_sign = r.c.Moon.sign_info.key
+      const ASC_degree = r.pl.houses[1] % 30
+      const ASC_element = r.c.house[1].sign.element
+      const hour_ruler_element = define.PLANET_LIST[hour_ruler].element
+      const ASC_ruler = r.c.house[1].sign.ruler
+      const ASC_triplicity = r.c.is_night ? r.c.house[1].sign['night_triplicity'] : r.c.house[1].sign['day_triplicity']
+      let score = 0
+      let m
+
+      let is_radical_hour_ruler = false
+      if(ASC_ruler === hour_ruler ||
+         ASC_triplicity == hour_ruler ||
+         ASC_element === hour_ruler_element){
+        is_radical_hour_ruler = true
+        score++
+      }
+      if(ASC_degree >= 3 && ASC_degree < 27){
+        score += 2
+      }
+      else if(ASC_degree >= 1 && ASC_degree < 3 || ASC_degree >= 27 && ASC_degree < 29){
+        score++
+      }
+      if(!moon_is_void){
+        score += 2
+      }
+      else if(moon_is_void && not_so_void_signs.indexOf(moon_sign) >= 0){
+        score++
+      }
+
+//console.log(hour_ruler , moon_is_void, moon_sign, ASC_degree, ASC_element, hour_ruler_element , ASC_ruler , ASC_triplicity)
+
+      
+      if(score === 5){
+        m = 'とても真剣に鑑定に取り組んでいることがチャートに表れています。鑑定結果を読み進めてください。'
+      }
+      else if(score === 4 && (
+        !is_radical_hour_ruler ||
+        moon_is_void
+        )){
+        m = '有効なチャートです。鑑定結果を読み進めてください。'
+      }
+      else if(!moon_is_void){
+        if(is_radical_hour_ruler && ASC_degree > 1 && ASC_degree < 3){
+          m = 'まだ質問を熟考していないと暗示されていますが、状況がチャートに反映されているので鑑定結果を読み進めてください。結果を参考にして質問についてよく考えると良いでしょう。'
+        }
+        else if(ASC_degree < 3){
+          m = 'まだ質問を熟考していないことが暗示されています。占いの前に行動したり考えたりなどできることがあったかもしれません。明日以降にもう一度占うのが良いでしょう。'
+        }
+        else if(is_radical_hour_ruler && ASC_degree >= 27 && ASC_degree < 29){
+          m = '手遅れになりつつあると暗示されています。まだ間に合うかもしれないので鑑定結果を読み進めて参考にしてください。'
+        }
+        else if(ASC_degree >= 27){
+          m = '既に結果が判明しているか、手遅れになりつつあるとチャートに示されています。鑑定結果を読み進めても役に立たないかもしれません。状況に変化が訪れた後にもう一度占うのが良いでしょう。'
+        }
+      }
+      else{
+        m = '状況が変わらないことが暗示されています。もしくは心が凝り固まった考えにとらわれて視野が狭くなっている状態でしょう。明日以降に再度占い直すことをオススメします。'
+      }
+        
+      this.radical.message = m
+      this.radical.score = score
     },
   }
 }
@@ -443,5 +494,7 @@ button.predict:hover{
     background: #f4dd66;
   }
 }
-
+.star_radical{
+    color: #e18e15;
+}
 </style>
