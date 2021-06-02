@@ -55,7 +55,7 @@
 
         <label class="pure-checkbox">
           <input type="radio" name="where_type" id="where_pref" checked> 
-          <select>
+          <select id="select_pref">
             <option value="1" data-lat="43.06417" data-lon="141.34694">北海道</option>
             <option value="2" data-lat="40.82444" data-lon="140.74">青森県</option>
             <option value="3" data-lat="39.70361" data-lon="141.1525">岩手県</option>
@@ -120,6 +120,21 @@
             <option v-for="n in 60" :key="n-1">{{n-1}}</option>
           </select>
           <span>分</span>
+
+          <span id="input_second_row">
+            <select id="where_lon_ew">
+              <option value="1">東経</option>
+              <option value="-1">西経</option>
+            </select>
+            <select id="where_lon_degree">
+              <option v-for="n in 180" :key="n-1">{{n-1}}</option>
+            </select>
+            <span>度</span>
+            <select id="where_lon_minute">
+              <option v-for="n in 60" :key="n-1">{{n-1}}</option>
+            </select>
+            <span>分</span>
+          </span>
         </label>
 
         <p>
@@ -136,6 +151,10 @@
 
         <label class="pure-checkbox">
           <input type="radio" name="when_type" id="when_input">
+          <input type="date" id="when_date">
+          <span id="input_second_row">
+            <input type="time" id="when_time">
+          </span>
         </label>
       </div>
 <!--
@@ -146,27 +165,25 @@
 
       <div class="center">
         <button class="predict" @click="get_result">教えてください<br>お星さま</button>
-        <br>
-        <canvas id="horo" width="600" height="600"></canvas>
       </div>
 
-      <div>
-        <h2>鑑定の有効度（ラディカル度）</h2>
-        <p>
-          <span class="star_radical" v-for="n in radical.score" :key="n">★</span>
-          <span class="star_not_radical" v-for="n in 5 - radical.score" :key="n">☆</span>
-        </p>
-        <p>{{radical.message}}</p>
-      </div>
+      <section class="hide_result">
+        <div class="center">
+          <canvas id="horo" width="500" height="620"></canvas>
+        </div>
 
-      <router-view name="result" :r="result"></router-view>
-
-      <div>
-        
-      </div>
+        <div>
+          <h2>鑑定の有効度（ラディカル度）</h2>
+          <p>
+            <span class="star_radical" v-for="n in radical.score" :key="n">★</span>
+            <span class="star_not_radical" v-for="n in 5 - radical.score" :key="n">☆</span>
+          </p>
+          <p>{{radical.message}}</p>
+        </div>
+        <router-view name="result" :r="result"></router-view>
+      </section>
 
     </section>
-
     
   </div>
 </template>
@@ -200,8 +217,11 @@ export default {
     }
   },
   mounted(){
-    //this.pl.setCurrentDate()
-    this.pl.setDate(2021, 5, 16, 150, 10, 0, 9)
+    this.set_default_input()
+
+
+/* 開発用
+    this.pl.setDate(2021, 5, 16, 15, 10, 0, 9)
     this.pl.getPlanets()
     this.pl.setGeoPosition(45, 135)
     this.houses = this.pl.getHouses()
@@ -214,7 +234,7 @@ export default {
       input_child: this.input_child,
     }
     this.drawHoroscope(this.result)
-    this.show_radical(this.result)
+    this.show_radical(this.result)*/
   },
 
   methods:{
@@ -234,10 +254,10 @@ export default {
         planets.push(v)
       }
 
-      planets.push({key:'Ac', longitude:this.pl.houses[1]})
-      planets.push({key:'Ic', longitude:this.pl.houses[4]})
-      planets.push({key:'Dc', longitude:this.pl.houses[7]})
-      planets.push({key:'Mc', longitude:this.pl.houses[10]})
+      planets.push({key:'AC', longitude:this.pl.houses[1]})
+      planets.push({key:'IC', longitude:this.pl.houses[4]})
+      planets.push({key:'DC', longitude:this.pl.houses[7]})
+      planets.push({key:'MC', longitude:this.pl.houses[10]})
 
       const POF_lon = (this.pl.houses[1] + this.pl.planets.Moon.longitude - this.pl.planets.Sun.longitude) % 360
       planets.push({key:'POF', longitude:POF_lon})
@@ -299,34 +319,90 @@ export default {
     },
 
     get_options(){
+      let where = '', when = ''
 
+      if(this.$$('#where_pref').checked){
+        this.$$('#select_pref').options.forEach(v=>{
+          if(v.selected){
+            where = v.text
+            return
+          }
+        })
+      }
+      else{
+        where += this.$$('#where_lat_ns').value.int() === 1 ? '北緯' : '南緯'
+        where += this.$$('#where_lat_degree').value + '°'
+        where += this.$$('#where_lat_minute').value + '\''
+        where += this.$$('#where_lon_ew').value.int() === 1 ? '東経' : '西経'
+        where += this.$$('#where_lon_degree').value + '°'
+        where += this.$$('#where_lon_minute').value + '\''
+      }
+
+      if(this.$$('#when_now').checked){
+        const now = new Date()
+        when += now.toStr('yyyy-MM-dd') + ' ' + now.toStr('HH:mm')
+      }
+      else{
+        when += this.$$('#when_date').value + ' ' + this.$$('#when_time').value
+      }
+      when += ' (UTC+0900)'
+
+      return {
+        when: when,
+        where: where,
+      }
     },
 
     get_result(){
-      let year, month, day, hour, minute, second, lat, lon
+      let year, month, day, hour, minute, lat, lon, date, time
       const timezone = 9
 
       this.$cookies.config(60 * 60 * 24 * 365, '')
-      this.$cookies.set('lat', 0)
+      //this.$cookies.set('lat', 0)
 
-console.log(this.$$('#when_now'))
-      if(this.$$('#when_now')){
+      if(this.$$('#when_now').checked){
         this.pl.setCurrentDate()
       }
       else{
+        date = this.$$('#when_date').value
+        time = this.$$('#when_time').value
+        year = date.slice(0,4).int()
+        month = date.slice(5,7).int()
+        day = date.slice(8,10).int()
+        hour = time.slice(0,2).int()
+        minute = time.slice(3,5).int()
 
-        this.pl.setDate(year, month, day, hour, minute, second, timezone)
+        this.pl.setDate(year, month, day, hour, minute, 0, timezone)
       }
+
+      if(this.$$('#where_pref').checked){
+        this.$$('#select_pref').options.forEach(v=>{
+          if(v.selected){
+            lat = v.dataset.lat.float()
+            lon = v.dataset.lon.float()
+            return
+          }
+        })
+      }
+      else{
+        lat = this.$$('#where_lat_ns').value.int() * (this.$$('#where_lat_degree').value.int() + this.$$('#where_lat_minute').value.int() / 60)
+        lon = this.$$('#where_lon_ew').value.int() * (this.$$('#where_lon_degree').value.int() + this.$$('#where_lon_minute').value.int() / 60)
+      }
+
       
       this.pl.getPlanets()
       this.pl.setGeoPosition(lat, lon)
-      this.houses = this.pl.getHouses('K')
+      this.houses = this.pl.getHouses()
 
-      console.log(this.pl)
-
-      this.drawHoroscope()
-
-      this.show_radical()
+      this.result = {
+        pl: this.pl,
+        planets: this.get_adjusted_planets(),
+        c: this.getConditions(),
+        opt: this.get_options(),
+        input_child: this.input_child,
+      }
+      this.drawHoroscope(this.result)
+      this.show_radical(this.result)
     },
 
     show_radical(r){
@@ -395,6 +471,24 @@ console.log(this.$$('#when_now'))
       this.radical.message = m
       this.radical.score = score
     },
+
+    set_default_input(){
+      const now = new Date()
+      this.$$('#when_date').value = now.getFullYear() + '-' + (now.getMonth() + 1).zeroPadding(2) + '-' + now.getDate().zeroPadding(2)
+      this.$$('#when_time').value = now.getHours().zeroPadding(2) + ':' + now.getMinutes().zeroPadding(2)
+
+      this.$$('#select_pref').options.forEach(v=>{
+        if(v.selected){
+          this.$$('#where_lat_ns').value = v.dataset.lat > 0 ? 1 : -1
+          this.$$('#where_lat_degree').value = v.dataset.lat.abs().int()
+          this.$$('#where_lat_minute').value = (v.dataset.lat.abs()%1*60).int()
+          this.$$('#where_lon_ew').value = v.dataset.lon > 0 ? 1 : -1
+          this.$$('#where_lon_degree').value = v.dataset.lon.abs().int()
+          this.$$('#where_lon_minute').value = (v.dataset.lon.abs()%1*60).int()
+          return
+        }
+      })
+    },
   }
 }
 </script>
@@ -407,9 +501,11 @@ h1{
     margin-right: 10px;
 }
 #horo{
-    width: 600px;
-    height: 600px;
-    border: solid 1px #0f0;
+    width: 500px;
+    max-width: 100%;
+    height: auto;
+    /*border: solid 1px #0f0;*/
+    margin: 50px 0;
 }
 button.predict{
     font-family: 'Noto Serif JP';
@@ -496,5 +592,21 @@ button.predict:hover{
 }
 .star_radical{
     color: #e18e15;
+}
+#when_date{
+    display: inline-block;
+}
+#when_time{
+    display: inline-block;
+}
+#input_second_row{
+    display: inline;
+}
+@media (max-width: 767px){
+  #input_second_row{
+    display: block;
+    margin: 5px 0 0 22px;
+    padding: 0;
+  }
 }
 </style>

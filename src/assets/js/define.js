@@ -11,6 +11,7 @@ const define = {
       orb: 17,
       chaldean_order: 4,
       element: 'Fire',
+      name: '太陽',
     },
     Moon:{
       text: '☽',
@@ -18,6 +19,7 @@ const define = {
       orb: 12.5,
       chaldean_order: 7,
       element: 'Water',
+      name: '月',
     },
     Mercury:{
       text: '☿',
@@ -26,6 +28,7 @@ const define = {
       orb: 7,
       chaldean_order: 6,
       element: 'Earth',
+      name: '水星',
     },
     Venus:{
       text: '♀',
@@ -35,6 +38,7 @@ const define = {
       orb: 8,
       chaldean_order: 5,
       element: 'Water',
+      name: '金星',
     },
     Mars:{
       text: '♂',
@@ -44,6 +48,7 @@ const define = {
       orb: 7.5,
       chaldean_order: 3,
       element: 'Fire',
+      name: '火星',
     },
     Jupiter:{
       text: '♃',
@@ -52,6 +57,7 @@ const define = {
       orb: 12,
       chaldean_order: 2,
       element: 'Air',
+      name: '木星',
     },
     Saturn:{
       text: '♄',
@@ -60,6 +66,7 @@ const define = {
       orb: 10,
       chaldean_order: 1,
       element: 'Earth',
+      name: '土星',
     },
     Uranus:{
       text: '♅',
@@ -76,19 +83,19 @@ const define = {
       ratio: 0.6,
       speed: 0.003974,
     },
-    Ac:{
+    AC:{
       text: 'AC',
       ratio: 0.3,
     },
-    Mc:{
+    MC:{
       text: 'MC',
       ratio: 0.3,
     },
-    Dc:{
+    DC:{
       text: 'DC',
       ratio: 0.3,
     },
-    Ic:{
+    IC:{
       text: 'IC',
       ratio: 0.3,
     },

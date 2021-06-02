@@ -22,6 +22,14 @@ export default{
       return parseFloat(this).abs()
     }
 
+    Number.prototype.float = function(){
+      return parseFloat(this)
+    }
+
+    String.prototype.float = function(){
+      return parseFloat(this)
+    }
+
     String.prototype.getAspectIcon = function(){
       return '/img/aspect/'+aspect_list[this].img
     }
@@ -142,15 +150,15 @@ export default{
     Date.prototype.toStr = function(type){
       this.setHours(this.getHours() + this.getTimezoneOffset() * -1/60)
       const dt = this.toISOString()
+      this.setHours(this.getHours() + this.getTimezoneOffset() * 1/60)
       //this.setHours(this.getHours() + this.getTimezoneOffset() * 1/60)
-
       switch(type){
         case "yyyy-MM-dd": 
           return dt.slice(0,10)
         case "HHmm":
           return dt.slice(11,16).replace(":", "")
         case "HH:mm":
-          return dt.replace(/(\d{2})(\d{2})/, "$1:$2")
+          return dt.slice(11,16)
         case "yyyyMMddHHmm":
           return dt.slice(0,4)+dt.slice(5,7)+dt.slice(8,10)+dt.slice(11,13)+dt.slice(14,16)
       }
@@ -349,6 +357,8 @@ export default{
     },
 
     drawHoroscope(r){
+      if(!r) return
+
       const canvas = this.$$('#horo')
       const ctx = canvas.getContext('2d')
       const circle_radius = 220
@@ -362,8 +372,15 @@ export default{
         planet: {},
       }
 
-console.log(r, define.SIGN_LIST)
-
+      if(ctx.getTransform().e === 0){
+        //原点調整
+        ctx.translate(250, 250)
+      }
+      else{
+        //クリア
+        ctx.clearRect(-250, -250, canvas.width, canvas.height)
+      }
+console.log(r)
       const ASC = r.pl.houses[1]
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
@@ -379,9 +396,6 @@ console.log(r, define.SIGN_LIST)
         }
       }
 
-      //原点調整
-      ctx.translate(300, 300)
-
       //背景
       ctx.fillStyle = '#fff'
       ctx.beginPath()
@@ -396,6 +410,7 @@ console.log(r, define.SIGN_LIST)
         const house_rad = Math.PI * (180 + (ASC%30) - (i+0.5)*30) / 180
         const house_x = Math.cos(house_rad)
         const house_y = Math.sin(house_rad)
+        ctx.font = '10px sans-serif'
         ctx.fillText((i+1), house_x * house_radius, house_y * house_radius)
 
         //星座の背景
@@ -483,7 +498,7 @@ console.log(r, define.SIGN_LIST)
         }
 
         ctx.font = parseInt(40 * r) + 'px ' + bold + ' sans-serif'
-        ctx.fillText(text, p_x*0.87, p_y*0.87)
+        ctx.fillText(text, p_x*0.88, p_y*0.88)
         ctx.font = '10px sans-serif'
         ctx.fillText((planet.longitude%30).int().zeroPadding(2), p_x, p_y)
 
@@ -504,6 +519,30 @@ console.log(r, define.SIGN_LIST)
           draw_triangle(1, p_rad)
         }
       })
+
+      //タイトル
+      // ctx.font = '24px serif'
+      // ctx.fillStyle = '#71735b'
+      // const horo_title = r.input_child.horo_title
+      // ctx.fillText(horo_title, 0, -310)
+      // ctx.font = '18px serif'
+      // ctx.textAlign = 'left'
+      // ctx.fillText(r.opt.when, -290, 280)
+      // ctx.fillText(define.PLANET_LIST[r.c.hour_ruler].name + '時間', -290, 310)
+      // ctx.textAlign = 'right'
+      // ctx.fillText(r.opt.where, 290, 310)
+      ctx.font = '14px serif'
+      ctx.textAlign = 'left'
+      ctx.fillStyle = '#71735b'
+      const text_x = -250
+      const text_y = 290
+      const text_line_h = 21
+      const horo_title = r.input_child.horo_title
+      ctx.fillText(horo_title, text_x, text_y)
+      ctx.fillText(r.opt.when, text_x, text_y  + text_line_h * 1)
+      ctx.fillText(define.PLANET_LIST[r.c.hour_ruler].name + '時間', text_x, text_y  + text_line_h * 2)
+      ctx.fillText(r.opt.where, text_x, text_y  + text_line_h * 3)
+
 
       //スピードの矢印
       function draw_triangle(speed_flg, p_rad){
