@@ -163,11 +163,17 @@
         <input type="text" class="pure-input-1" placeholder="記入すると、考えをまとめたり、後から振り返る時に便利です。">
       </div>-->
 
-      <div class="center">
-        <button class="predict" @click="get_result">教えてください<br>お星さま</button>
+      <div class="predict">
+        <button @click="get_result">教えてください<br>お星さま</button>
       </div>
 
-      <section class="hide_result">
+      <div id="predict_button_anime">
+        <div class="drop"></div>
+        <div class="ripple"></div>
+        <div class="ripple2"></div>
+      </div>
+
+      <section id="result" class="hide">
         <div class="center">
           <canvas id="horo" width="500" height="620"></canvas>
         </div>
@@ -403,6 +409,9 @@ export default {
       }
       this.drawHoroscope(this.result)
       this.show_radical(this.result)
+
+      this.$$('#predict_button_anime').classList.add('show')
+      this.$$('#result').classList.add('show')
     },
 
     show_radical(r){
@@ -505,9 +514,14 @@ h1{
     max-width: 100%;
     height: auto;
     /*border: solid 1px #0f0;*/
-    margin: 50px 0;
+    margin: 0 0 50px;
 }
-button.predict{
+.predict{
+    text-align: center;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.predict button{
     font-family: 'Noto Serif JP';
     font-weight: bold;
     height: 150px;
@@ -561,7 +575,7 @@ button.predict{
   }
 }
 
-button.predict:hover{
+.predict button:hover{
     color: #fff;
     background: #f4dd66;
     border: solid 5px #fff;
@@ -590,6 +604,157 @@ button.predict:hover{
     background: #f4dd66;
   }
 }
+
+#predict_button_anime{
+    height: 200px;
+    position: relative;
+    padding: 0;
+}
+#predict_button_anime.show .drop{
+    opacity: 0;
+    position: relative;
+    top: 5vw;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: #24206d;
+    border-radius: 0% 100% 50% 50%/ 0% 50% 50% 100%;
+    transform: rotate(45deg) skew(10deg, 10deg);
+    margin: auto;
+    animation: drop 3s linear;
+    -webkit-animation: drop 3s linear;
+}
+#predict_button_anime.show .ripple{
+    opacity: 0;
+    width: 500px;
+    max-width: calc(100vw - 40px);
+    height: 500px;
+    max-height: calc(100vw - 40px);
+    border: solid 1px #24206d;
+    border-radius: 50%;
+    padding: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 5vw;
+    animation: ripple 3s linear;
+    -webkit-animation: ripple 3s linear;
+}
+#predict_button_anime.show .ripple2{
+    opacity: 0;
+    width: 500px;
+    max-width: calc(100vw - 40px);
+    height: 500px;
+    max-height: calc(100vw - 40px);
+    border: solid 1px #5969bf;
+    border-radius: 50%;
+    padding: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 5vw;
+    animation: ripple2 3s linear;
+    -webkit-animation: ripple2 3s linear;
+}
+#result{
+    display: none;
+}
+#result.show{
+    opacity: 1;
+    margin-top: -100px;
+    display: block;
+    position: relative;
+    animation: result 3s linear;
+    -webkit-animation: result 3s linear;
+}
+
+@-webkit-keyframes drop{
+  0% {
+    opacity: 1;
+    top: 0vw;
+    width: 0px;
+    height: 0px;
+  }
+  30% {
+    opacity: 1;
+    top: 1vw;
+    width: 30px;
+    height: 30px;
+  }
+  50% {
+    opacity: 0;
+    top: 5vw;
+    width: 30px;
+    height: 30px;
+  }
+  100%{
+    opacity: 0;
+  }
+}
+@-webkit-keyframes ripple{
+  0% {
+    opacity: 0;
+  }
+  49% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+    width: 5vw;
+    min-width: 5vw;
+    height: 5vw;
+    top: 150px;
+  }
+  90%{
+    opacity: 0;
+    width: 500px;
+    max-width: calc(100vw - 40px);
+    height: 500px;
+    max-height: calc(100vw - 40px);
+    top: 100px;
+  }
+}
+@-webkit-keyframes ripple2{
+  0% {
+    opacity: 0;
+  }
+  59% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+    width: 5vw;
+    min-width: 5vw;
+    height: 5vw;
+    top: 150px;
+  }
+  100%{
+    opacity: 0;
+    width: 500px;
+    max-width: calc(100vw - 40px);
+    height: 500px;
+    max-height: calc(100vw - 40px);
+    top: 100px;
+  }
+}
+@-webkit-keyframes result{
+  0% {
+    display: none;
+    opacity: 0;
+  }
+  30% {
+    display: block;
+  }
+  90%{
+    opacity: 0;
+  }
+  100%{
+    opacity: 1;
+  }
+}
+
 .star_radical{
     color: #e18e15;
 }
@@ -609,4 +774,5 @@ button.predict:hover{
     padding: 0;
   }
 }
+
 </style>

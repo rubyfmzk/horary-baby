@@ -2,8 +2,8 @@
   <section>
     <div>
       <h2>なくしものがありそうな場所</h2>
-      <p>{{message.direction}}</p>
-      <p>{{message.house}}</p>
+      <p>ありそうな方角は、<b>{{message.direction}}</b>です。</p>
+      <p>もしくは、<b>{{message.house}}</b>も探してみてください。</p>
     </div>
 <!--    <div>
       <h2>なくしものの見つかりやすさ</h2>
@@ -100,7 +100,7 @@ console.log(this.r)
       })
 
 
-      this.message.direction = Object.keys(direction).map(k=>{return direction[k]}).join('、')
+      this.message.direction = Object.keys(direction).map(k=>{return direction[k]}).join('・')
       this.message.house = house_messages[sig_planet_house]
 
     },
