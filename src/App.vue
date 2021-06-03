@@ -17,6 +17,22 @@ export default {
   components: {
     ComponentHeader,
     ComponentFooter,
+  },
+  watch: {
+    '$route': function(to){
+      //スクロール位置
+      if(!to.hash){
+        window.scrollTo(0, 0)//トップへ
+      }
+      else{
+        this.toAnchor(to.hash)
+      }
+    },
+  },
+  methods:{
+    toAnchor: function(hash){
+      this.$scrollTo(hash)
+    },
   }
 }
 </script>

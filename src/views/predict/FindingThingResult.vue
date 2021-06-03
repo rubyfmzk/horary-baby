@@ -3,16 +3,21 @@
     <div>
       <h2>なくしものがありそうな場所</h2>
       <p>ありそうな方角は、<b>{{message.direction}}</b>です。</p>
-      <p>もしくは、<b>{{message.house}}</b>も探してみてください。</p>
+      <p>もしくは、<b>{{message.house}}</b>に思い当りがあれば探してみてください。</p>
     </div>
 <!--    <div>
-      <h2>なくしものの見つかりやすさ</h2>
+      <h2>盗難の可能性</h2>
     </div>-->
+    <div>
+      <h2>{{message.sig_planet_name}}からのアドバイス</h2>
+      <p>{{message.planet_advice}}</p>
+    </div>
   </section>
 </template>
 
 <script>
 import Mixin from '@/components/Common'
+import define from '@/assets/js/define'
 
 export default {
   mixins:[Mixin],
@@ -26,7 +31,6 @@ export default {
   },
   watch:{
     r: function(){
-console.log(this.r)
       this.set_result()
     }
   },
@@ -36,9 +40,12 @@ console.log(this.r)
       house: '',
     }
   },
+  mounted(){
+    this.set_result()
+  },
   methods:{
     set_result(){
-      if(!this.r.c) return
+      if(!this.r || !this.r.c) return
 
       const ASC = this.r.pl.houses[1]
       const IC = this.r.pl.houses[4]
@@ -73,8 +80,19 @@ console.log(this.r)
         '寝室、静かな場所、誰かが隠している、病院',
       ]
 
+      const planet_advice = {
+        Saturn: 'ものを探すのも大事ですが、なくなった原因を見つめる機会にもなるでしょう。家でなくなった場合は片付けたり、外出中になくなった場合はバッグの中を片付けたり、ものを置き忘れないように気を付ける方法を考えてみてください。',
+        Jupiter: 'ものはいつか壊れたりなくなったり、今のあなたに合わなくなります。その日が訪れたのでしょう。今のあなたにもっと合うものに出会う前触れなのかもしれません。なくしものを探しつつ、素敵なものへの出会いも求めてください。',
+        Mars: '一通り探したつもりになっていても、まだ探したりないのかもしれません。意外な場所にあるものです。もう一度探してみてください。',
+        Sun: 'なくなったものは戻ってこないかもしれませんが、ものを探す過程で得た発見や気付きは心に残り、いずれ役に立つ日が来るでしょう。',
+        Venus: 'ものはいつか壊れたりなくなったり、今のあなたに合わなくなります。その日が訪れたのでしょう。今のあなたにもっと合うものに出会う前触れなのかもしれません。なくしものを探しつつ、素敵なものへの出会いも求めてください。',
+        Mercury: 'なくなったものは戻ってこないかもしれませんが、ものを探す過程で得た発見や気付きは心に残り、いずれ役に立つ日が来るでしょう。',
+        Moon: 'ものをなくしたことで注意深くなっているでしょう。今の注意深さが大きな過ちを回避してくれるかもしれません。なくなったものへの感謝の気持ちを持ちましょう。',
+      }
+
       const sig_house = this.r.input_child.horo.significator.house
       const sig_planet = this.r.c.house[sig_house].ruler
+      const sig_planet_name = define.PLANET_LIST[sig_planet].name
       const sig_planet_house  = this.r.c[sig_planet].house
       const sig_planet_lon = this.r.c[sig_planet].sign.longitude
       const direction = {}
@@ -102,7 +120,8 @@ console.log(this.r)
 
       this.message.direction = Object.keys(direction).map(k=>{return direction[k]}).join('・')
       this.message.house = house_messages[sig_planet_house]
-
+      this.message.sig_planet_name = sig_planet_name
+      this.message.planet_advice = planet_advice[sig_planet]
     },
   }
 }

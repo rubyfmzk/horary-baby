@@ -55,7 +55,7 @@
 
         <label class="pure-checkbox">
           <input type="radio" name="where_type" id="where_pref" checked> 
-          <select id="select_pref">
+          <select id="select_pref" @change="change_where('pref')">
             <option value="1" data-lat="43.06417" data-lon="141.34694">北海道</option>
             <option value="2" data-lat="40.82444" data-lon="140.74">青森県</option>
             <option value="3" data-lat="39.70361" data-lon="141.1525">岩手県</option>
@@ -108,29 +108,29 @@
 
         <label class="pure-checkbox">
           <input type="radio" name="where_type" id="where_latlon">
-          <select id="where_lat_ns">
+          <select id="where_lat_ns" @change="change_where('latlon')">
             <option value="1">北緯</option>
             <option value="-1">南緯</option>
           </select>
-          <select id="where_lat_degree">
+          <select id="where_lat_degree" @change="change_where('latlon')">
             <option v-for="n in 90" :key="n-1">{{n-1}}</option>
           </select>
           <span>度</span>
-          <select id="where_lat_minute">
+          <select id="where_lat_minute" @change="change_where('latlon')">
             <option v-for="n in 60" :key="n-1">{{n-1}}</option>
           </select>
           <span>分</span>
 
           <span id="input_second_row">
-            <select id="where_lon_ew">
+            <select id="where_lon_ew" @change="change_where('latlon')">
               <option value="1">東経</option>
               <option value="-1">西経</option>
             </select>
-            <select id="where_lon_degree">
+            <select id="where_lon_degree" @change="change_where('latlon')">
               <option v-for="n in 180" :key="n-1">{{n-1}}</option>
             </select>
             <span>度</span>
-            <select id="where_lon_minute">
+            <select id="where_lon_minute" @change="change_where('latlon')">
               <option v-for="n in 60" :key="n-1">{{n-1}}</option>
             </select>
             <span>分</span>
@@ -151,9 +151,9 @@
 
         <label class="pure-checkbox">
           <input type="radio" name="when_type" id="when_input">
-          <input type="date" id="when_date">
+          <input type="date" id="when_date" @change="change_when">
           <span id="input_second_row">
-            <input type="time" id="when_time">
+            <input type="time" id="when_time" @change="change_when">
           </span>
         </label>
       </div>
@@ -179,7 +179,7 @@
         </div>
 
         <div>
-          <h2>鑑定の有効度（ラディカル度）</h2>
+          <h2>鑑定の有効性（ラディカル度）</h2>
           <p>
             <span class="star_radical" v-for="n in radical.score" :key="n">★</span>
             <span class="star_not_radical" v-for="n in 5 - radical.score" :key="n">☆</span>
@@ -225,28 +225,32 @@ export default {
   mounted(){
     this.set_default_input()
 
-
-/* 開発用
-    this.pl.setDate(2021, 5, 16, 15, 10, 0, 9)
-    this.pl.getPlanets()
-    this.pl.setGeoPosition(45, 135)
-    this.houses = this.pl.getHouses()
-
-    this.result = {
-      pl: this.pl,
-      planets: this.get_adjusted_planets(),
-      c: this.getConditions(),
-      opt: this.get_options(),
-      input_child: this.input_child,
+    if(this.$route.query.test == 1){
+      this.test()
     }
-    this.drawHoroscope(this.result)
-    this.show_radical(this.result)*/
   },
 
   methods:{
     change_input(){
       this.input = {
         who: this.$$('#who').value,
+      }
+    },
+
+    change_when(){
+      this.$$('#when_input').checked = true
+    },
+
+    change_where(type){
+      switch(type){
+        case 'pref':
+          this.$$('#where_pref').checked = true
+          this.set_pref()
+          break
+
+        case 'latlon':
+          this.$$('#where_latlon').checked = true
+          break
       }
     },
 
@@ -410,6 +414,8 @@ export default {
       this.drawHoroscope(this.result)
       this.show_radical(this.result)
 
+      this.$$('.predict button').setAttribute('disabled', 'disabled')
+      this.$$('.predict button').text = ''
       this.$$('#predict_button_anime').classList.add('show')
       this.$$('#result').classList.add('show')
     },
@@ -424,7 +430,11 @@ export default {
       const hour_ruler_element = define.PLANET_LIST[hour_ruler].element
       const ASC_ruler = r.c.house[1].sign.ruler
       const ASC_triplicity = r.c.is_night ? r.c.house[1].sign['night_triplicity'] : r.c.house[1].sign['day_triplicity']
-      let score = 0
+      const ASC_with_Saturn = r.c.Saturn.house === 1
+      const ASC_ruler_is_combust = r.c[ASC_ruler].Sun && r.c[ASC_ruler].Sun.diff === 'Combust'
+      const ASC_under_Saturn = ASC_with_Saturn || ASC_ruler_is_combust
+
+      let score = 4
       let m
 
       let is_radical_hour_ruler = false
@@ -434,47 +444,49 @@ export default {
         is_radical_hour_ruler = true
         score++
       }
-      if(ASC_degree >= 3 && ASC_degree < 27){
-        score += 2
+      if(ASC_degree < 1 || ASC_degree >= 29){
+        score -= 2
       }
-      else if(ASC_degree >= 1 && ASC_degree < 3 || ASC_degree >= 27 && ASC_degree < 29){
-        score++
+      else if(ASC_degree < 3 || ASC_degree >= 27){
+        score--
       }
-      if(!moon_is_void){
-        score += 2
+      if(moon_is_void){
+        score--
+        if(not_so_void_signs.indexOf(moon_sign) < 0){
+          score--
+        }
       }
-      else if(moon_is_void && not_so_void_signs.indexOf(moon_sign) >= 0){
-        score++
+      if(ASC_under_Saturn){
+        score -= 1
       }
 
-//console.log(hour_ruler , moon_is_void, moon_sign, ASC_degree, ASC_element, hour_ruler_element , ASC_ruler , ASC_triplicity)
-
-      
       if(score === 5){
         m = 'とても真剣に鑑定に取り組んでいることがチャートに表れています。鑑定結果を読み進めてください。'
       }
-      else if(score === 4 && (
-        !is_radical_hour_ruler ||
-        moon_is_void
-        )){
+      else if(score === 4 && (!is_radical_hour_ruler || moon_is_void)){
         m = '有効なチャートです。鑑定結果を読み進めてください。'
       }
-      else if(!moon_is_void){
-        if(is_radical_hour_ruler && ASC_degree > 1 && ASC_degree < 3){
-          m = 'まだ質問を熟考していないと暗示されていますが、状況がチャートに反映されているので鑑定結果を読み進めてください。結果を参考にして質問についてよく考えると良いでしょう。'
-        }
-        else if(ASC_degree < 3){
-          m = 'まだ質問を熟考していないことが暗示されています。占いの前に行動したり考えたりなどできることがあったかもしれません。明日以降にもう一度占うのが良いでしょう。'
-        }
-        else if(is_radical_hour_ruler && ASC_degree >= 27 && ASC_degree < 29){
-          m = '手遅れになりつつあると暗示されています。まだ間に合うかもしれないので鑑定結果を読み進めて参考にしてください。'
-        }
-        else if(ASC_degree >= 27){
-          m = '既に結果が判明しているか、手遅れになりつつあるとチャートに示されています。鑑定結果を読み進めても役に立たないかもしれません。状況に変化が訪れた後にもう一度占うのが良いでしょう。'
-        }
+      else if(score === 4 && ASC_under_Saturn){
+        m = '気持ちが混乱したり落ち込みすぎているので正常な判断ができないと示されています。深呼吸をして少し心を落ち着けてから読み進めるか、明日以降に落ち着いた気持ちで占い直すのも良いでしょう。'
       }
-      else{
+      else if(moon_is_void){
         m = '状況が変わらないことが暗示されています。もしくは心が凝り固まった考えにとらわれて視野が狭くなっている状態でしょう。明日以降に再度占い直すことをオススメします。'
+      }
+      else if(is_radical_hour_ruler && ASC_degree > 1 && ASC_degree < 3){
+          m = 'まだ質問を熟考していないと暗示されていますが、状況がチャートに反映されているので鑑定結果を読み進めてください。結果を参考にして質問についてよく考えると良いでしょう。'
+      }
+      else if(ASC_degree < 3){
+        m = 'まだ質問を熟考していないことが暗示されています。占いの前に行動したり考えたりなどできることがあったかもしれません。明日以降にもう一度占うのが良いでしょう。'
+      }
+      else if(is_radical_hour_ruler && ASC_degree >= 27 && ASC_degree < 29){
+        m = '手遅れになりつつあると暗示されています。まだ間に合うかもしれないので鑑定結果を読み進めて参考にしてください。'
+      }
+      else if(ASC_degree >= 27){
+        m = '既に結果が判明しているか、手遅れになりつつあるとチャートに示されています。鑑定結果を読み進めても役に立たないかもしれません。状況に変化が訪れた後にもう一度占うのが良いでしょう。'
+      }
+      //対策
+      else{
+        m = '明日以降にもう一度占うのが良いでしょう。'
       }
         
       this.radical.message = m
@@ -486,6 +498,10 @@ export default {
       this.$$('#when_date').value = now.getFullYear() + '-' + (now.getMonth() + 1).zeroPadding(2) + '-' + now.getDate().zeroPadding(2)
       this.$$('#when_time').value = now.getHours().zeroPadding(2) + ':' + now.getMinutes().zeroPadding(2)
 
+      this.set_pref()
+    },
+
+    set_pref(){
       this.$$('#select_pref').options.forEach(v=>{
         if(v.selected){
           this.$$('#where_lat_ns').value = v.dataset.lat > 0 ? 1 : -1
@@ -498,6 +514,24 @@ export default {
         }
       })
     },
+
+    test(){
+      this.pl.setDate(2021, 5, 16, 15, 10, 0, 9)
+      this.pl.getPlanets()
+      this.pl.setGeoPosition(45, 135)
+      this.houses = this.pl.getHouses()
+
+      this.result = {
+        pl: this.pl,
+        planets: this.get_adjusted_planets(),
+        c: this.getConditions(),
+        opt: this.get_options(),
+        input_child: this.input_child,
+      }
+      this.drawHoroscope(this.result)
+      this.show_radical(this.result)
+      this.$$('#result').classList.add('show')
+    },
   }
 }
 </script>
@@ -508,6 +542,11 @@ h1{
 }
 [type=radio]{
     margin-right: 10px;
+}
+#when_date, #when_time{
+    height: calc(21px + 1em);
+    padding: 0 0.6em;
+    box-sizing: unset;
 }
 #horo{
     width: 500px;
@@ -533,6 +572,7 @@ h1{
     animation: rainbow 10s linear infinite;
     -webkit-animation: rainbow 10s linear infinite;
     line-height: 1.5;
+    word-break: keep-all;
 }
 @keyframes rainbow{
   0% {
@@ -575,7 +615,7 @@ h1{
   }
 }
 
-.predict button:hover{
+.predict button:hover, .predict button[disabled=disabled]{
     color: #fff;
     background: #f4dd66;
     border: solid 5px #fff;
@@ -613,7 +653,7 @@ h1{
 #predict_button_anime.show .drop{
     opacity: 0;
     position: relative;
-    top: 5vw;
+    top: 100px;
     width: 30px;
     height: 30px;
     padding: 0;
@@ -685,7 +725,7 @@ h1{
   }
   50% {
     opacity: 0;
-    top: 5vw;
+    top: 100px;
     width: 30px;
     height: 30px;
   }

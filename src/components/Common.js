@@ -871,8 +871,8 @@ console.log(r)
             res[p].Sun.diff = 'Cazimi'
           }
           //コンバスト
-          else if(longitude > res.Sun.conbust_start && longitude < res.Sun.conbust_end){
-            res[p].Sun.diff = 'Conbust'
+          else if(longitude > res.Sun.combust_start && longitude < res.Sun.combust_end){
+            res[p].Sun.diff = 'Combust'
           }
           //サンビーム
           else if(longitude > res.Sun.sunbeam_start && longitude < res.Sun.sunbeam_end ||
